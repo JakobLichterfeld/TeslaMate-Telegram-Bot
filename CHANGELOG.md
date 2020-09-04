@@ -6,6 +6,10 @@
 
 ### Enhancements
 
+- store configuration in seperate files, see #4
+- possibility to exit with STRG+C
+- bit better messages on connection
+
 ### Bug Fixes
 
 ## [0.2.0] - 2020-09-04

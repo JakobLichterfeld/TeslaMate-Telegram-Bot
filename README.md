@@ -1,4 +1,5 @@
 # TeslaMate Telegram Bot
+
 A telegram bot which sends a message if an update for your Tesla is available (use TeslaMate MQTT)
 
 [![latest release](https://img.shields.io/github/v/release/JakobLichterfeld/TeslaMate_Telegram_Bot)](https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/releases/latest)
@@ -50,24 +51,21 @@ This setup is recommended only if you are running TeslaMate Telegram Bot **on yo
 
 Before the first install you need to set up a telegram bot. For doing so, see [Requirements](#requirements).
 
-Open the file ```src/teslamte_telegram_bot.py``` and adopt the following lines with your own config:
-```
-bot = Bot('api_key')
-```
-```
-chat_id='chat_id',
-```
-```
-client.connect(mqtt_config.mqtt_data['mqtt_broker_host', 'mqtt_broker_port', 60)
+Open the files ```src/mqtt_config.py``` and ```src/telegram_config.py``` and adopt according to your own config.
+
+You also need to install the required pip packages
+
+```shell
+python -m pip install -r ./src/requirements.txt
 ```
 
 ## Usage
-Execute the file ```src/teslamte_telegram_bot.py.sh``` from linux bash with ```python ./src/check_for_tesla_update_and_send_telegram.sh``` or, depending on your system ```python3 ./src/check_for_tesla_update_and_send_telegram.sh```
+
+Execute the file ```src/teslamte_telegram_bot.py``` from linux bash with ```python ./src/teslamte_telegram_bot.py``` or, depending on your system ```python3 ./src/teslamte_telegram_bot.py```
 
 ## Update
 
 Check out the [release notes](https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/releases) before upgrading!
-
 
 ## Contributing
 
