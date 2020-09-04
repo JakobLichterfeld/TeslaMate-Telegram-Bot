@@ -6,6 +6,8 @@
 
 ### Enhancements
 
+- Implemetation in python, as there are libraries for mqtt and telegram bot available for cool features in the future
+
 ### Bug Fixes
 
 ## [0.1.0] - 2020-09-04
