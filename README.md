@@ -1,21 +1,17 @@
 # TeslaMate Telegram Bot
 
-A telegram bot which sends a message if an update for your Tesla is available (use TeslaMate MQTT)
-
 [![latest release](https://img.shields.io/github/v/release/JakobLichterfeld/TeslaMate_Telegram_Bot)](https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/releases/latest)
 [![donation](https://img.shields.io/badge/Donate-PayPal-informational.svg?logo=paypal)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZE9EHN48GYWMN&source=url)
 
-A telegram bot which sends a message if an update for your Tesla is available (know thru TeslaMate MQTT topic)
+This is a telegram bot written in Python to notify by telegram message when a new SW update for your Tesla is available. It uses the MQTT topic which [TeslaMate](https://github.com/adriankumpf/teslamate) offers.
 
 ## Table of contents
 
 - [TeslaMate Telegram Bot](#teslamate-telegram-bot)
   - [Table of contents](#table-of-contents)
   - [Features](#features)
-  - [Dependencies](#dependencies)
   - [Requirements](#requirements)
   - [Installation](#installation)
-  - [Usage](#usage)
   - [Update](#update)
   - [Contributing](#contributing)
   - [Donation](#donation)
@@ -25,15 +21,10 @@ A telegram bot which sends a message if an update for your Tesla is available (k
 
 - [x] Sends a telegram message to you if an update for your tesla is available
 
-## Dependencies
-
-- [TeslaMate](https://github.com/adriankumpf/teslamate)
-- [mosquitto](https://mosquitto.org/)
-- [Telegram](https://telegram.org/)
-
 ## Requirements
 
 - A Machine that's always on and runs [TeslaMate](https://github.com/adriankumpf/teslamate)
+- Docker _(if you are new to Docker, see [Installing Docker and Docker Compose](https://dev.to/rohansawant/installing-docker-and-docker-compose-on-the-raspberry-pi-in-5-simple-steps-3mgl))_
 - External internet access, to send telegram messages.
 - A mobile with [Telegram](https://telegram.org/) client installed
 - your own Telegram Bot, see [Creating a new telegram bot](https://core.telegram.org/bots#6-botfather)
@@ -41,31 +32,56 @@ A telegram bot which sends a message if an update for your Tesla is available (k
 
 ## Installation
 
-Install [Dependencies](#dependencies) and fulfill the [Requirements](#requirements).
+Make sure you fulfill the [Requirements](#requirements).
 
 It is recommended to backup your data first.
 
-This document provides the necessary steps for installation of TeslaMate Telegram Bot on a linux system.
+This document provides the necessary steps for installation of TeslaMate Telegram Bot on a any system that runs Docker.
 
 This setup is recommended only if you are running TeslaMate Telegram Bot **on your home network**, as otherwise your telegram API tokens might be at risk.
 
-Before the first install you need to set up a telegram bot. For doing so, see [Requirements](#requirements).
+1. Create a file called `docker-compose.yml` with the following content:
 
-Open the files ```src/mqtt_config.py``` and ```src/telegram_config.py``` and adopt according to your own config.
+   ```yml title="docker-compose.yml"
+      version: "3"
 
-You also need to install the required pip packages
+      services:
+        teslamate_telegram_bot:
+          image: teslamatetelegrambot
+          restart: unless-stopped
+          environment:
+            - MQTT_BROKER_HOST=IP_Adress
+            - MQTT_BROKER_PORT=1883 #optional, default 1883
+            - TELEGRAM_BOT_API_KEY=secret_api_key
+            - TELEGRAM_BOT_CHAT_ID=secret_chat_id
+          ports:
+            - 1883:1883
+          build:
+            context: .
+            dockerfile: Dockerfile
+   ```
 
-```shell
-python -m pip install -r ./src/requirements.txt
-```
+2. Build and start the docker container with `docker-compose up --build`. To run the containers in the background add the `-d` flag:
 
-## Usage
-
-Execute the file ```src/teslamte_telegram_bot.py``` from linux bash with ```python ./src/teslamte_telegram_bot.py``` or, depending on your system ```python3 ./src/teslamte_telegram_bot.py```
+   ```bash
+   docker-compose up -d --build
+   ```
 
 ## Update
 
 Check out the [release notes](https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/releases) before upgrading!
+
+Pull the new images:
+
+```bash
+docker-compose pull
+```
+
+and restart the stack with `docker-compose up`. To run the containers in the background add the `-d` flag:
+
+```bash
+docker-compose up -d
+```
 
 ## Contributing
 

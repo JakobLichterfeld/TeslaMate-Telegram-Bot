@@ -6,6 +6,8 @@
 
 ### Enhancements
 
+- deployment as docker, see #6
+
 ### Bug Fixes
 
 ## [0.3.0] - 2020-09-04
