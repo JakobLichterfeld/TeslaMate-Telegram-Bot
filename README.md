@@ -47,7 +47,7 @@ This setup is recommended only if you are running TeslaMate Telegram Bot **on yo
 
       services:
         teslamate_telegram_bot:
-          image: teslamatetelegrambot/teslamatetelegrambot
+          image: teslamatetelegrambot
           restart: unless-stopped
           environment:
             - MQTT_BROKER_HOST=IP_Adress
@@ -56,12 +56,15 @@ This setup is recommended only if you are running TeslaMate Telegram Bot **on yo
             - TELEGRAM_BOT_CHAT_ID=secret_chat_id
           ports:
             - 1883:1883
+          build:
+            context: .
+            dockerfile: Dockerfile
    ```
 
-2. Start the docker container with `docker-compose up`. To run the containers in the background add the `-d` flag:
+2. Build and start the docker container with `docker-compose up --build`. To run the containers in the background add the `-d` flag:
 
    ```bash
-   docker-compose up -d
+   docker-compose up -d --build
    ```
 
 ## Update
