@@ -5,6 +5,7 @@
 ### New Features
 
 ### Enhancements
+- deployment as docker on docker hub, see #8
 
 ### Bug Fixes
 
