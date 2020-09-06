@@ -11,7 +11,7 @@ on:
       - "Dockerfile"
 
 jobs:
-  teslamate:
+  teslamatetelegrambot:
     runs-on: ubuntu-latest
     steps:
       - name: Prepare
