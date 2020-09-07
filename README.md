@@ -46,7 +46,7 @@ This setup is recommended only if you are running TeslaMate Telegram Bot **on yo
       version: "3"
 
       services:
-        teslamate_telegram_bot:
+        teslamatetelegrambot:
           image: teslamatetelegrambot
           restart: unless-stopped
           environment:

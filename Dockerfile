@@ -11,6 +11,15 @@ ENV PYTHONUNBUFFERED 1
 ADD src/requirements.txt .
 RUN python -m pip install -r requirements.txt
 
+# install the OS build deps
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libffi-dev \
+    libssl-dev \
+    python-dev \
+    openssl \
+ && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 ADD . /app
 
