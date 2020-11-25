@@ -9,11 +9,7 @@ ENV PYTHONUNBUFFERED 1
 
 # install the OS build deps
 RUN apt-get update && apt-get install -y \
-    build-essential \
     libffi-dev \
-    libssl-dev \
-    python-dev \
-    openssl \
  && rm -rf /var/lib/apt/lists/*
 
 # Install pip requirements
