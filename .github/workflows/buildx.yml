@@ -84,10 +84,6 @@ jobs:
             --output "type=image,push=true" \
             ${{ steps.prepare.outputs.buildx_args }}
       -
-        name: Inspect image
-        run: |
-          docker buildx imagetools inspect ${DOCKER_IMAGE}:${VERSION}
-      -
         name: Clear
         if: always()
         run: |
