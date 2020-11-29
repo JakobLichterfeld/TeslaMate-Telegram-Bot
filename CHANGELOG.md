@@ -6,6 +6,8 @@
 
 ### Enhancements
 
+- deployment as docker on docker hub, see #8
+
 ### Bug Fixes
 
 ## [0.4.0] - 2020-09-04
