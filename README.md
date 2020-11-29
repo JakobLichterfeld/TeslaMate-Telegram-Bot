@@ -47,7 +47,7 @@ This setup is recommended only if you are running TeslaMate Telegram Bot **on yo
 
       services:
         teslamatetelegrambot:
-          image: teslamatetelegrambot
+          image: teslamatetelegrambot/teslamatetelegrambot:latest
           restart: unless-stopped
           environment:
             - MQTT_BROKER_HOST=IP_Adress
