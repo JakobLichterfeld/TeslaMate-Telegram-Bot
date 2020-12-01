@@ -7,6 +7,7 @@
 ### Enhancements
 
 - deployment as docker on docker hub, see #8
+- Internal: Docker-Action: use official docker buildx, see #14
 
 ### Bug Fixes
 
