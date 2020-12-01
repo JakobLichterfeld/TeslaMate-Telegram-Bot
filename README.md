@@ -40,7 +40,7 @@ This document provides the necessary steps for installation of TeslaMate Telegra
 
 This setup is recommended only if you are running TeslaMate Telegram Bot **on your home network**, as otherwise your telegram API tokens might be at risk.
 
-1. Create a file called `docker-compose.yml` with the following content:
+1. Create a file called `docker-compose.yml` with the following content (adopt with your own values):
 
    ```yml title="docker-compose.yml"
       version: "3"
