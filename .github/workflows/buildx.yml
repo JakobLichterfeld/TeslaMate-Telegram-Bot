@@ -70,7 +70,7 @@ jobs:
             ${{ steps.prepare.outputs.buildx_args }}
       -
         name: Docker Login
-        if: success() && github.event_name != 'pull_request' && (endsWith(github.ref, github.event.repository.default_branch) || startsWith(github.ref, 'refs/tags/'))
+        if: success() && github.event_name != 'pull_request' && (endsWith(github.ref, github.event.repository.default_branch) || startsWith(github.ref, 'refs/tags/')) || endsWith(github.ref, 'feature/8-deployment-as-docker-on-docker-hub')
         uses: docker/login-action@v1
         with:
           username: ${{ steps.prepare.outputs.docker_username }}
