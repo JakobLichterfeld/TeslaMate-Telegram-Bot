@@ -57,7 +57,7 @@ This setup is recommended only if you are running TeslaMate Telegram Bot **on yo
             - TELEGRAM_BOT_API_KEY=secret_api_key
             - TELEGRAM_BOT_CHAT_ID=secret_chat_id
           ports:
-            - 1883:1883
+            - 1883
           build:
             context: .
             dockerfile: Dockerfile
