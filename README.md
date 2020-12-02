@@ -61,10 +61,10 @@ This setup is recommended only if you are running TeslaMate Telegram Bot **on yo
             dockerfile: Dockerfile
    ```
 
-2. Build and start the docker container with `docker-compose up --build`. To run the containers in the background add the `-d` flag:
+2. Build and start the docker container with `docker-compose up`. To run the containers in the background add the `-d` flag:
 
    ```bash
-   docker-compose up -d --build
+   docker-compose up -d
    ```
 
 ## Update
