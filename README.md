@@ -1,6 +1,8 @@
 # TeslaMate Telegram Bot
 
 [![latest release](https://img.shields.io/github/v/release/JakobLichterfeld/TeslaMate_Telegram_Bot)](https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/releases/latest)
+[![](https://images.microbadger.com/badges/version/teslamatetelegrambot/teslamatetelegrambot.svg)](https://hub.docker.com/r/teslamatetelegrambot/teslamatetelegrambot)
+[![](https://images.microbadger.com/badges/image/teslamatetelegrambot/teslamatetelegrambot.svg)](https://microbadger.com/images/teslamatetelegrambot/teslamatetelegrambot)
 [![donation](https://img.shields.io/badge/Donate-PayPal-informational.svg?logo=paypal)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZE9EHN48GYWMN&source=url)
 
 This is a telegram bot written in Python to notify by telegram message when a new SW update for your Tesla is available. It uses the MQTT topic which [TeslaMate](https://github.com/adriankumpf/teslamate) offers.
@@ -40,7 +42,7 @@ This document provides the necessary steps for installation of TeslaMate Telegra
 
 This setup is recommended only if you are running TeslaMate Telegram Bot **on your home network**, as otherwise your telegram API tokens might be at risk.
 
-1. Create a file called `docker-compose.yml` with the following content:
+1. Create a file called `docker-compose.yml` with the following content (adopt with your own values):
 
    ```yml title="docker-compose.yml"
       version: "3"
@@ -55,16 +57,16 @@ This setup is recommended only if you are running TeslaMate Telegram Bot **on yo
             - TELEGRAM_BOT_API_KEY=secret_api_key
             - TELEGRAM_BOT_CHAT_ID=secret_chat_id
           ports:
-            - 1883:1883
+            - 1883
           build:
             context: .
             dockerfile: Dockerfile
    ```
 
-2. Build and start the docker container with `docker-compose up --build`. To run the containers in the background add the `-d` flag:
+2. Build and start the docker container with `docker-compose up`. To run the containers in the background add the `-d` flag:
 
    ```bash
-   docker-compose up -d --build
+   docker-compose up -d
    ```
 
 ## Update
