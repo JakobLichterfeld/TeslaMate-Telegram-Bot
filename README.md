@@ -1,6 +1,8 @@
 # TeslaMate Telegram Bot
 
 [![latest release](https://img.shields.io/github/v/release/JakobLichterfeld/TeslaMate_Telegram_Bot)](https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/releases/latest)
+[![](https://images.microbadger.com/badges/version/teslamatetelegrambot/teslamatetelegrambot.svg)](https://hub.docker.com/r/teslamatetelegrambot/teslamatetelegrambot)
+[![](https://images.microbadger.com/badges/image/teslamatetelegrambot/teslamatetelegrambot.svg)](https://microbadger.com/images/teslamatetelegrambot/teslamatetelegrambot)
 [![donation](https://img.shields.io/badge/Donate-PayPal-informational.svg?logo=paypal)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZE9EHN48GYWMN&source=url)
 
 This is a telegram bot written in Python to notify by telegram message when a new SW update for your Tesla is available. It uses the MQTT topic which [TeslaMate](https://github.com/adriankumpf/teslamate) offers.
