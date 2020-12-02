@@ -6,11 +6,15 @@
 
 ### Enhancements
 
-- deployment as docker on docker hub, see #8
-- Internal: Docker-Action: use official docker buildx, see #14
-
 ### Bug Fixes
 
+## [0.5.0] - 2020-12-03
+### New Features
+
+### Enhancements
+
+- deployment as docker on docker hub, see #8
+- Internal: Docker-Action: use official docker buildx, see #14
 ## [0.4.0] - 2020-09-04
 
 ### New Features
@@ -47,7 +51,8 @@
 
 - Initial release with proof of concept, see #1
 
-[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.4.0...HEAD
+[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.1.0...v0.2.0
