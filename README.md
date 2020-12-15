@@ -5,11 +5,18 @@
 [![](https://images.microbadger.com/badges/image/teslamatetelegrambot/teslamatetelegrambot.svg)](https://microbadger.com/images/teslamatetelegrambot/teslamatetelegrambot)
 [![donation](https://img.shields.io/badge/Donate-PayPal-informational.svg?logo=paypal)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZE9EHN48GYWMN&source=url)
 
-This is a telegram bot written in Python to notify by telegram message when a new SW update for your Tesla is available. It uses the MQTT topic which [TeslaMate](https://github.com/adriankumpf/teslamate) offers.
+This is a telegram bot written in Python to notify by Telegram message when a new SW update for your Tesla is available. It uses the MQTT topic which [TeslaMate](https://github.com/adriankumpf/teslamate) offers.
+
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/telegram_message_sw_update.jpg" alt="Telegram Message: SW Update available" title="telegram_message_sw_update" width="180" height="320" />
+</p>
 
 ## Table of contents
 
 - [TeslaMate Telegram Bot](#teslamate-telegram-bot)
+  - [Screenshots](#screenshots)
   - [Table of contents](#table-of-contents)
   - [Features](#features)
   - [Requirements](#requirements)
