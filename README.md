@@ -61,6 +61,8 @@ This setup is recommended only if you are running TeslaMate Telegram Bot **on yo
           environment:
             - MQTT_BROKER_HOST=IP_Adress
             - MQTT_BROKER_PORT=1883 #optional, default 1883
+            - MQTT_BROKER_USERNAME=username #optional, only needed when broker has authentication enabled
+            - MQTT_BROKER_PASSWORD=password #optional, only needed when broker has authentication enabled
             - TELEGRAM_BOT_API_KEY=secret_api_key
             - TELEGRAM_BOT_CHAT_ID=secret_chat_id
           ports:
