@@ -13,10 +13,13 @@ RUN apt-get update && apt-get install -y \
     libffi-dev \
     libssl-dev \
     python-dev \
+    python3-dev \
     openssl \
+    cargo
  && rm -rf /var/lib/apt/lists/*
 
-# Install pip requirements
+# Update pip and install pip requirements
+RUN python -m pip install --upgrade pip
 ADD src/requirements.txt .
 RUN python -m pip install -r requirements.txt
 
