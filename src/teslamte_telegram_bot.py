@@ -55,6 +55,15 @@ client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 
+client.username_pw_set
+if os.getenv('MQTT_BROKER_USERNAME') == None:
+    pass
+else:
+    if os.getenv('MQTT_BROKER_PASSWORD') == None:
+        client.username_pw_set(os.getenv('MQTT_BROKER_USERNAME', ''))
+    else:
+        client.username_pw_set(os.getenv('MQTT_BROKER_USERNAME', ''), os.getenv('MQTT_BROKER_PASSWORD', ''))
+
 client.connect(os.getenv('MQTT_BROKER_HOST', '127.0.0.1'),
                int(os.getenv('MQTT_BROKER_PORT', 1883)), 60)
 
