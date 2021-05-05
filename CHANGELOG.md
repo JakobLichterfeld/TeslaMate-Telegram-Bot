@@ -8,6 +8,15 @@
 
 ### Bug Fixes
 
+## [0.5.2] - 2021-05-05
+
+### New Features
+
+### Enhancements
+
+### Bug Fixes
+
+- docker build dependencies
 ## [0.5.1] - 2021-05-05
 
 ### New Features
@@ -60,7 +69,8 @@
 
 - Initial release with proof of concept, see #1
 
-[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.5.1...HEAD
+[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.3.0...v0.4.0
