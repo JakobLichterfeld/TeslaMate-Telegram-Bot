@@ -6,6 +6,15 @@
 
 ### Enhancements
 
+- doc: show docker pulls in readme
+- ci: bump actions/checkout to v4
+- ci: bump docker/setup-qemu-action to v3
+- ci: Enable dependabot for GitHub Actions
+- ci: bump actions/cache to v4
+- ci: bump docker/login-action to v3
+- ci: Enable dependabot for pip requirements
+- build: Update Python base image to version 3.11-slim-bookworm
+
 ### Bug Fixes
 
 ## [0.5.3] - 2021-05-05
