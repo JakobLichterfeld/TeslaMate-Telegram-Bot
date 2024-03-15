@@ -17,6 +17,7 @@
 - build: reduce the size of the Docker image by cleaning the APT cache
 - build: use copy instead of add in dockerfile
 - build: remove non-existent deb package from docker file
+- refactor: improve maintainability by extracting methods, extract environment variable handling, default value handling, add docstrings
 
 ### Bug Fixes
 
