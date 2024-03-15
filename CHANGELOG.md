@@ -27,6 +27,7 @@
 ### Bug Fixes
 
 - docker build dependencies
+
 ## [0.5.1] - 2021-05-05
 
 ### New Features
@@ -43,6 +44,7 @@
 
 - deployment as docker on docker hub, see #8
 - Internal: Docker-Action: use official docker buildx, see #14
+
 ## [0.4.0] - 2020-09-04
 
 ### New Features
