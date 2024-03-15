@@ -20,6 +20,7 @@
 - refactor: improve maintainability by extracting methods, extract environment variable handling, default value handling, add docstrings
 - ci: enable dependabot for docker dependencies
 - build: Bump python from 3.11-slim-bookworm to 3.12-slim-bookworm (#32)
+- feat: update paho-mqtt dependencie to 2.0.0
 
 ### Bug Fixes
 

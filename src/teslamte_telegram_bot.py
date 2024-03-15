@@ -42,10 +42,16 @@ def get_env_variable(var_name, default_value=None):
         exit(1)
     return var_value
 
-def on_connect(client, userdata, flags, rc):
+def on_connect(client, userdata, flags, reason_code):
     """ The callback for when the client receives a CONNACK response from the server."""
-    print("Connected with result code "+str(rc))
-    if rc == 0:
+    print("Connected with result code "+str(reason_code))
+    if reason_code == "Unsupported protocol version":
+        print("Unsupported protocol version")
+        exit(1)
+    if reason_code == "Client identifier not valid":
+        print("Client identifier not valid")
+        exit(1)
+    if reason_code == 0:
         print("Connected successfully to broker")
     else:
         print("Connection failed")
@@ -61,7 +67,7 @@ def on_message(client, userdata, msg):
 
 def setup_mqtt_client():
     """ Setup the MQTT client """
-    client = mqtt.Client()
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.on_connect = on_connect
     client.on_message = on_message
 
