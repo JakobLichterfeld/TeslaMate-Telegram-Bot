@@ -8,6 +8,8 @@
 
 ### Bug Fixes
 
+- fix: re-add notification for available SW update only
+
 ## [0.6.0] - 2023-03-15
 
 ### New Features
