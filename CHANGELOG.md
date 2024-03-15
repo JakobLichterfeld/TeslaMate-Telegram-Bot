@@ -19,6 +19,7 @@
 - build: remove non-existent deb package from docker file
 - refactor: improve maintainability by extracting methods, extract environment variable handling, default value handling, add docstrings
 - ci: enable dependabot for docker dependencies
+- build: Bump python from 3.11-slim-bookworm to 3.12-slim-bookworm (#32)
 
 ### Bug Fixes
 
