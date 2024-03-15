@@ -14,6 +14,7 @@
 - ci: bump docker/login-action to v3
 - ci: Enable dependabot for pip requirements
 - build: Update Python base image to version 3.11-slim-bookworm
+- build: reduce the size of the Docker image by cleaning the APT cache
 
 ### Bug Fixes
 
