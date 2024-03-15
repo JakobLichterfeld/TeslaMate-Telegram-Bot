@@ -18,6 +18,7 @@
 - build: use copy instead of add in dockerfile
 - build: remove non-existent deb package from docker file
 - refactor: improve maintainability by extracting methods, extract environment variable handling, default value handling, add docstrings
+- ci: enable dependabot for docker dependencies
 
 ### Bug Fixes
 
