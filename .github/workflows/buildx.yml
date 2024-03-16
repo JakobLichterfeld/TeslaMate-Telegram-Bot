@@ -32,10 +32,10 @@ jobs:
             TAGS="$TAGS --tag ${DOCKER_IMAGE}:${MINOR_VERSION} --tag ${DOCKER_IMAGE}:latest"
           fi
 
-          echo "{docker_username}=${DOCKER_USERNAME}" >> $GITHUB_OUTPUT
-          echo "{docker_image}=${DOCKER_IMAGE}" >> $GITHUB_OUTPUT
-          echo "{version}=${VERSION}" >> $GITHUB_OUTPUT
-          echo "{buildx_args}=--platform ${DOCKER_PLATFORMS} ${TAGS} --file Dockerfile ." >> $GITHUB_OUTPUT
+          echo "docker_username=${DOCKER_USERNAME}" >> $GITHUB_OUTPUT
+          echo "docker_image=${DOCKER_IMAGE}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "buildx_args=--platform ${DOCKER_PLATFORMS} ${TAGS} --file Dockerfile ." >> $GITHUB_OUTPUT
 
       - name: Checkout
         uses: actions/checkout@v4

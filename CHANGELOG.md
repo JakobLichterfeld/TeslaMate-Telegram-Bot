@@ -7,6 +7,7 @@
 ### Enhancements
 
 - ci: use Environment File instead of deprecated set-output
+- ci: correct use of environment file outputs
 
 ### Bug Fixes
 
