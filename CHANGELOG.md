@@ -7,6 +7,7 @@
 ### Enhancements
 
 - build: improve non-root user creation in dockerfile
+- style: remove global variables for bot and chat_id, ensure UPPERCASE for constants, update imports
 
 ### Bug Fixes
 
