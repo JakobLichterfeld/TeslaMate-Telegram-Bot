@@ -60,6 +60,7 @@ def on_connect(client, userdata, flags, reason_code):
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
     client.subscribe(teslamate_topic_update_available)
+    client.subscribe(teslamate_topic_update_version)
 
 update_version = 'unknown'
 def on_message(client, userdata, msg):

@@ -8,6 +8,8 @@
 
 ### Bug Fixes
 
+fix: Subscription to teslamate_topic_update_version added
+
 ## [0.6.2] - 2023-03-16
 
 ### New Features
