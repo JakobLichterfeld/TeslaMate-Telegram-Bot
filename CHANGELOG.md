@@ -6,6 +6,8 @@
 
 ### Enhancements
 
+- build: improve non-root user creation in dockerfile
+
 ### Bug Fixes
 
 fix: Subscription to teslamate_topic_update_version added
