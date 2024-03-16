@@ -25,6 +25,7 @@ MQTT_BROKER_PORT = 'MQTT_BROKER_PORT'
 
 # MQTT topics
 teslamate_topic_update_available = f"teslamate/cars/{car_id}/update_available"
+teslamate_topic_update_version =f"teslamate/cars/{car_id}/update_version"
 
 ########################################################################################
 
@@ -60,18 +61,24 @@ def on_connect(client, userdata, flags, reason_code):
     # reconnect then subscriptions will be renewed.
     client.subscribe(teslamate_topic_update_available)
 
+update_version = 'unknown'
 def on_message(client, userdata, msg):
     """ The callback for when a PUBLISH message is received from the server."""
+    global update_version
     print(msg.topic+" "+str(msg.payload))
 
-    if msg.payload.decode() == "true":
-        print("A new SW update for your Tesla is available!")
-        bot.send_message(
-            chat_id,
-            # text="<b>"+"SW Update"+"</b>\n"+"A new SW update for your Tesla is available!\n\n<b>"+msg.topic+"</b>\n"+str(msg.payload.decode()),
-            text="<b>"+"SW Update"+"</b>\n"+"A new SW update for your Tesla is available!",
-            parse_mode=ParseMode.HTML,
-        )
+    if msg.topic == teslamate_topic_update_version:
+        update_version = msg.payload.decode()
+        print(f"Update to version {update_version} available.")
+
+    if msg.topic == teslamate_topic_update_available:
+        if msg.payload.decode() == "true":
+            print(f"A new SW update to version: {update_version} for your Tesla is available!")
+            bot.send_message(
+                chat_id,
+                text="<b>"+"SW Update"+"</b>\n"+"A new SW update to version: "+ update_version + " for your Tesla is available!",
+                parse_mode=ParseMode.HTML,
+            )
 
 def setup_mqtt_client():
     """ Setup the MQTT client """

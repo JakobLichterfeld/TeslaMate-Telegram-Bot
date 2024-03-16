@@ -4,6 +4,8 @@
 
 ### New Features
 
+- feat: Specify which SW update is available (#21)
+
 ### Enhancements
 
 - ci: use Environment File instead of deprecated set-output
