@@ -1,5 +1,6 @@
 # TeslaMate Telegram Bot
 
+[![CI](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/actions/workflows/buildx.yml/badge.svg)](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/actions/workflows/buildx.yml)
 [![latest release](https://img.shields.io/github/v/release/JakobLichterfeld/TeslaMate_Telegram_Bot)](https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/releases/latest)
 [![](https://images.microbadger.com/badges/version/teslamatetelegrambot/teslamatetelegrambot.svg)](https://hub.docker.com/r/teslamatetelegrambot/teslamatetelegrambot)
 [![](https://images.microbadger.com/badges/image/teslamatetelegrambot/teslamatetelegrambot.svg)](https://microbadger.com/images/teslamatetelegrambot/teslamatetelegrambot)

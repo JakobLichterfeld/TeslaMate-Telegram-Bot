@@ -1,88 +1,141 @@
-name: buildx
+name: CI
 
 on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * *" # Every day at 3:00 AM
   push:
     branches:
       - "master"
     tags:
       - "v*"
     paths:
-      - ".github/workflows/buildx.yml"
-      - "Dockerfile"
+      - "**/*"
+      - "!.github/**" # exclude PRs related to .github from auto-run
+      - "!.github/workflows/**" # exclude PRs related to .github from auto-run
+env:
+  REGISTRY_IMAGE: teslamatetelegrambot/teslamatetelegrambot
 
 jobs:
-  teslamate-telegram-bot-build:
+  check_paths:
     runs-on: ubuntu-latest
+    outputs:
+      githubfolder: ${{ steps.filter.outputs.githubfolder }}
     steps:
-      - name: Prepare
-        id: prepare
-        run: |
-          DOCKER_USERNAME=teslamatetelegrambot
-          DOCKER_IMAGE=teslamatetelegrambot/teslamatetelegrambot
-          DOCKER_PLATFORMS=linux/amd64,linux/arm/v7,linux/arm64
-          VERSION=edge
-
-          if [[ $GITHUB_REF == refs/tags/v* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/v}
-            MINOR_VERSION=${VERSION%.*}
-          fi
-
-          TAGS="--tag ${DOCKER_IMAGE}:${VERSION}"
-          if [ "$VERSION" != "edge" ]; then
-            TAGS="$TAGS --tag ${DOCKER_IMAGE}:${MINOR_VERSION} --tag ${DOCKER_IMAGE}:latest"
-          fi
-
-          echo "docker_username=${DOCKER_USERNAME}" >> $GITHUB_OUTPUT
-          echo "docker_image=${DOCKER_IMAGE}" >> $GITHUB_OUTPUT
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "buildx_args=--platform ${DOCKER_PLATFORMS} ${TAGS} --file Dockerfile ." >> $GITHUB_OUTPUT
-
-      - name: Checkout
+      -
+        name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Available platforms
-        run: echo ${{ steps.buildx.outputs.platforms }}
-
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        id: cache
+      -
+        name: Filter paths
+        uses: dorny/paths-filter@v3.0.1
+        id: filter
         with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-teslamatetelegrambot-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-teslamatetelegrambot-
+          filters: |
+            githubfolder:
+              - '.github/**'
 
-      - name: Docker Buildx (build)
+  build:
+    needs: check_paths
+    if: needs.check_paths.outputs.githubfolder == 'false' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm/v7
+          - linux/arm64
+    steps:
+      -
+        name: Prepare
         run: |
-          docker buildx build \
-            --cache-from "type=local,src=/tmp/.buildx-cache" \
-            --cache-to "type=local,dest=/tmp/.buildx-cache,mode=max" \
-            --output "type=image,push=false" \
-            ${{ steps.prepare.outputs.buildx_args }}
-
-      - name: Docker Login
-        if: success() && github.event_name != 'pull_request' && (endsWith(github.ref, github.event.repository.default_branch) || startsWith(github.ref, 'refs/tags/'))
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+      -
+        name: Checkout
+        uses: actions/checkout@v4
+      -
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ steps.prepare.outputs.docker_username }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Docker Buildx (push)
-        if: success() && github.event_name != 'pull_request' && (endsWith(github.ref, github.event.repository.default_branch) || startsWith(github.ref, 'refs/tags/'))
+      -
+        name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
+      -
+        name: Export digest
         run: |
-          docker buildx build \
-            --cache-from "type=local,src=/tmp/.buildx-cache" \
-            --output "type=image,push=true" \
-            ${{ steps.prepare.outputs.buildx_args }}
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+      -
+        name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
 
-      - name: Clear
-        if: always()
+  merge:
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    steps:
+      -
+        name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
+          tags: |
+            type=schedule,pattern=edge
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=edge
+      -
+        name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      -
+        name: Create manifest list and push
+        working-directory: /tmp/digests
         run: |
-          rm -f ${HOME}/.docker/config.json
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
+      -
+        name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ steps.meta.outputs.version }}

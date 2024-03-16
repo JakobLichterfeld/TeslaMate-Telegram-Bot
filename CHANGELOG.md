@@ -8,6 +8,7 @@
 
 - build: improve non-root user creation in dockerfile
 - style: remove global variables for bot and chat_id, ensure UPPERCASE for constants, update imports
+- ci: distribute build across multiple runners
 
 ### Bug Fixes
 
