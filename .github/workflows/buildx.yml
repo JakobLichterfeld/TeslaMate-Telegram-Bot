@@ -11,7 +11,7 @@ on:
       - "Dockerfile"
 
 jobs:
-  teslamatetelegrambot:
+  teslamate-telegram-bot-build:
     runs-on: ubuntu-latest
     steps:
       - name: Prepare
@@ -32,20 +32,24 @@ jobs:
             TAGS="$TAGS --tag ${DOCKER_IMAGE}:${MINOR_VERSION} --tag ${DOCKER_IMAGE}:latest"
           fi
 
-          echo ::set-output name=docker_username::${DOCKER_USERNAME}
-          echo ::set-output name=docker_image::${DOCKER_IMAGE}
-          echo ::set-output name=version::${VERSION}
-          echo ::set-output name=buildx_args::--platform ${DOCKER_PLATFORMS} \
-            ${TAGS} --file Dockerfile .
+          echo "{docker_username}=${DOCKER_USERNAME}" >> $GITHUB_OUTPUT
+          echo "{docker_image}=${DOCKER_IMAGE}" >> $GITHUB_OUTPUT
+          echo "{version}=${VERSION}" >> $GITHUB_OUTPUT
+          echo "{buildx_args}=--platform ${DOCKER_PLATFORMS} ${TAGS} --file Dockerfile ." >> $GITHUB_OUTPUT
+
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
+
       - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
+
       - name: Cache Docker layers
         uses: actions/cache@v4
         id: cache
@@ -54,6 +58,7 @@ jobs:
           key: ${{ runner.os }}-buildx-teslamatetelegrambot-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-teslamatetelegrambot-
+
       - name: Docker Buildx (build)
         run: |
           docker buildx build \
@@ -61,6 +66,7 @@ jobs:
             --cache-to "type=local,dest=/tmp/.buildx-cache,mode=max" \
             --output "type=image,push=false" \
             ${{ steps.prepare.outputs.buildx_args }}
+
       - name: Docker Login
         if: success() && github.event_name != 'pull_request' && (endsWith(github.ref, github.event.repository.default_branch) || startsWith(github.ref, 'refs/tags/'))
         uses: docker/login-action@v3
@@ -75,6 +81,7 @@ jobs:
             --cache-from "type=local,src=/tmp/.buildx-cache" \
             --output "type=image,push=true" \
             ${{ steps.prepare.outputs.buildx_args }}
+
       - name: Clear
         if: always()
         run: |

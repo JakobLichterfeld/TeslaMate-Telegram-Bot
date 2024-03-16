@@ -6,6 +6,8 @@
 
 ### Enhancements
 
+- ci: use Environment File instead of deprecated set-output
+
 ### Bug Fixes
 
 ## [0.6.1] - 2023-03-15
