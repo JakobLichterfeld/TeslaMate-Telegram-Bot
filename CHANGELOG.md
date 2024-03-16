@@ -11,6 +11,8 @@
 
 ### Bug Fixes
 
+- fix: remove double bot message
+
 ## [0.6.1] - 2023-03-15
 
 ### New Features

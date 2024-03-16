@@ -63,6 +63,7 @@ def on_connect(client, userdata, flags, reason_code):
 def on_message(client, userdata, msg):
     """ The callback for when a PUBLISH message is received from the server."""
     print(msg.topic+" "+str(msg.payload))
+
     if msg.payload.decode() == "true":
         print("A new SW update for your Tesla is available!")
         bot.send_message(
@@ -71,7 +72,6 @@ def on_message(client, userdata, msg):
             text="<b>"+"SW Update"+"</b>\n"+"A new SW update for your Tesla is available!",
             parse_mode=ParseMode.HTML,
         )
-    bot.send_message(chat_id=chat_id, text=msg.payload.decode("utf-8"), parse_mode=ParseMode.HTML)
 
 def setup_mqtt_client():
     """ Setup the MQTT client """
