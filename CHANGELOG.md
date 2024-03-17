@@ -6,6 +6,14 @@
 
 ### Enhancements
 
+### Bug Fixes
+
+## [0.6.4] - 2023-03-17
+
+### New Features
+
+### Enhancements
+
 - doc: update Docker installation instructions in the README and change to docker compose v2
 - build: reduce image size by removing unnecessary packages
 
@@ -150,7 +158,9 @@ fix: Subscription to teslamate_topic_update_version added
 
 - Initial release with proof of concept, see #1
 
-[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.2...HEAD
+[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.4...HEAD
+[0.6.4]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.3...v0.6.4
+[0.6.3]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.5.3...v0.6.0
