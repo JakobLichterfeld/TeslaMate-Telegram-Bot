@@ -39,16 +39,16 @@ def get_env_variable(var_name, default_value=None):
         exit(1)
     return var_value
 
-def on_connect(client, userdata, flags, reason_code):
+def on_connect(client, userdata, flags, reasonCode, properties=None):
     """ The callback for when the client receives a CONNACK response from the server."""
-    print("Connected with result code "+str(reason_code))
-    if reason_code == "Unsupported protocol version":
+    print("Connected with result code "+str(reasonCode))
+    if reasonCode == "Unsupported protocol version":
         print("Unsupported protocol version")
         exit(1)
-    if reason_code == "Client identifier not valid":
+    if reasonCode == "Client identifier not valid":
         print("Client identifier not valid")
         exit(1)
-    if reason_code == 0:
+    if reasonCode == 0:
         print("Connected successfully to broker")
     else:
         print("Connection failed")

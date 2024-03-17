@@ -10,6 +10,8 @@
 
 ### Bug Fixes
 
+- fix: correct number of positional arguments for on_connect() since mqtt5
+
 ## [0.6.3] - 2023-03-16
 
 ### New Features
