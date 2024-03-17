@@ -6,6 +6,8 @@
 
 ### Enhancements
 
+- doc: update Docker installation instructions in the README and change to docker compose v2
+
 ### Bug Fixes
 
 ## [0.6.3] - 2023-03-16

@@ -33,7 +33,7 @@ This is a telegram bot written in Python to notify by Telegram message when a ne
 ## Requirements
 
 - A Machine that's always on and runs [TeslaMate](https://github.com/adriankumpf/teslamate)
-- Docker _(if you are new to Docker, see [Installing Docker and Docker Compose](https://dev.to/rohansawant/installing-docker-and-docker-compose-on-the-raspberry-pi-in-5-simple-steps-3mgl))_
+- Docker _(if you are new to Docker, see [Installing Docker](https://docs.docker.com/engine/install/) and [Docker Compose](https://docs.docker.com/compose/install/linux/))_
 - External internet access, to send telegram messages.
 - A mobile with [Telegram](https://telegram.org/) client installed
 - your own Telegram Bot, see [Creating a new telegram bot](https://core.telegram.org/bots#6-botfather)
@@ -72,10 +72,10 @@ This setup is recommended only if you are running TeslaMate Telegram Bot **on yo
             dockerfile: Dockerfile
    ```
 
-2. Build and start the docker container with `docker-compose up`. To run the containers in the background add the `-d` flag:
+2. Build and start the docker container with `docker compose up`. To run the containers in the background add the `-d` flag:
 
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 ## Update
@@ -85,13 +85,13 @@ Check out the [release notes](https://github.com/JakobLichterfeld/TeslaMate_Tele
 Pull the new images:
 
 ```bash
-docker-compose pull
+docker compose pull
 ```
 
-and restart the stack with `docker-compose up`. To run the containers in the background add the `-d` flag:
+and restart the stack with `docker compose up`. To run the containers in the background add the `-d` flag:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ## Contributing
