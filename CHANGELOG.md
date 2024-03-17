@@ -7,6 +7,7 @@
 ### Enhancements
 
 - doc: update Docker installation instructions in the README and change to docker compose v2
+- build: reduce image size by removing unnecessary packages
 
 ### Bug Fixes
 
