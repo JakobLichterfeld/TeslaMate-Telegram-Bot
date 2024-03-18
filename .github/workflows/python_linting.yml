@@ -47,7 +47,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install flake8
           pip install pylint
-          if [- f src/requirements.txt ]; then pip install -r src/requirements.txt; fi
+          if [- f requirements.txt ]; then python -m pip install -r requirements.txt; fi
       -
         name: Lint with flake8
         run: |
