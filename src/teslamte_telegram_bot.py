@@ -1,6 +1,7 @@
 """ A simple Telegram bot that listens to MQTT messages from Teslamate and sends them to a Telegram chat."""
 import os
 import time
+import logging
 import paho.mqtt.client as mqtt
 from telegram import Bot
 from telegram.constants import ParseMode
@@ -29,29 +30,33 @@ teslamate_topic_update_version =f"teslamate/cars/{CAR_ID}/update_version"
 
 ########################################################################################
 
+# Logging
+# Configure the logging module to output debug level logs and above
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
+
 # Helper functions
 def get_env_variable(var_name, default_value=None):
     """ Get the environment variable or return a default value"""
     var_value = os.getenv(var_name, default_value)
     if var_value is None and var_name in [TELEGRAM_BOT_API_KEY, TELEGRAM_BOT_CHAT_ID]:
-        print(f"Error: Please set the environment variable {var_name} and try again.")
+        logging.error("Error: Please set the environment variable %s and try again.", var_name)
         # raise EnvironmentError(f"Environment variable {var_name} is not set.")
         exit(1)
     return var_value
 
 def on_connect(client, userdata, flags, reasonCode, properties=None):
     """ The callback for when the client receives a CONNACK response from the server."""
-    print("Connected with result code "+str(reasonCode))
+    logging.info("Connected with result code %s", reasonCode)
     if reasonCode == "Unsupported protocol version":
-        print("Unsupported protocol version")
+        logging.error("Unsupported protocol version")
         exit(1)
     if reasonCode == "Client identifier not valid":
-        print("Client identifier not valid")
+        logging.error("Client identifier not valid")
         exit(1)
     if reasonCode == 0:
-        print("Connected successfully to broker")
+        logging.info("Connected successfully to broker")
     else:
-        print("Connection failed")
+        logging.error("Connection failed")
 
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
@@ -62,15 +67,15 @@ update_version = 'unknown'
 def on_message(client, userdata, msg, bot, chat_id):
     """ The callback for when a PUBLISH message is received from the server."""
     global update_version
-    print(msg.topic+" "+str(msg.payload))
+    logging.info("Received message: %s %s", msg.topic, msg.payload.decode())
 
     if msg.topic == teslamate_topic_update_version:
         update_version = msg.payload.decode()
-        print(f"Update to version {update_version} available.")
+        logging.info("Update to version %s available.", update_version)
 
     if msg.topic == teslamate_topic_update_available:
         if msg.payload.decode() == "true":
-            print(f"A new SW update to version: {update_version} for your Tesla is available!")
+            logging.info("A new SW update to version: %s for your Tesla is available!", update_version)
             bot.send_message(
                 chat_id,
                 text="<b>"+"SW Update"+"</b>\n"+"A new SW update to version: "+ update_version + " for your Tesla is available!",
@@ -107,7 +112,7 @@ def main():
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("exiting")
+        logging.info("Exiting after receiving SIGINT (Ctrl+C) signal.")
     client.disconnect()
     client.loop_stop()
 

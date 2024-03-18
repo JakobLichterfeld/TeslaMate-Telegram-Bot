@@ -6,6 +6,8 @@
 
 ### Enhancements
 
+- feat: use logging instead of simple print
+
 ### Bug Fixes
 
 ## [0.6.4] - 2023-03-17
