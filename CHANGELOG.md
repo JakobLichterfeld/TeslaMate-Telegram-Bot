@@ -7,6 +7,7 @@
 ### Enhancements
 
 - feat: use logging instead of simple print
+- feat: introduce a global state and send messages depending on the state, improve logging
 
 ### Bug Fixes
 
