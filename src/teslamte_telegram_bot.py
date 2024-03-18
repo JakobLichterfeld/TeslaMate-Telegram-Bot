@@ -1,4 +1,5 @@
-""" A simple Telegram bot that listens to MQTT messages from Teslamate and sends them to a Telegram chat.""" # pylint: disable=line-too-long
+""" A simple Telegram bot that listens to MQTT messages from Teslamate
+and sends them to a Telegram chat."""  # pylint: disable=line-too-long
 import os
 import time
 import logging
@@ -6,7 +7,7 @@ import paho.mqtt.client as mqtt
 from telegram import Bot
 from telegram.constants import ParseMode
 
-########################################################################################
+##############################################################################
 
 # Default values
 CAR_ID = 1
@@ -26,24 +27,27 @@ MQTT_BROKER_PORT = 'MQTT_BROKER_PORT'
 
 # MQTT topics
 teslamate_topic_update_available = f"teslamate/cars/{CAR_ID}/update_available"
-teslamate_topic_update_version =f"teslamate/cars/{CAR_ID}/update_version"
+teslamate_topic_update_version = f"teslamate/cars/{CAR_ID}/update_version"
 
-########################################################################################
+##############################################################################
 
 # Logging
 # Configure the logging module to output info level logs and above
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
+
 # Global state
 class State:
     """ A class to hold the global state of the application."""
     def __init__(self):
-        self.update_available = False              # Flag to indicate if an update is available
-        self.update_available_message_sent = False # Flag to indicate if the message has been sent
-        self.update_version = "unknown"            # The version of the update
+        self.update_available = False               # Flag to indicate if an update is available
+        self.update_available_message_sent = False  # Flag to indicate if the message has been sent
+        self.update_version = "unknown"             # The version of the update
+
 
 # Global state
 state = State()
+
 
 # Helper functions
 def get_env_variable(var_name, default_value=None):
@@ -57,7 +61,8 @@ def get_env_variable(var_name, default_value=None):
         exit(1)
     return var_value
 
-def on_connect(client, userdata, flags, reason_code, properties=None): # pylint: disable=unused-argument
+
+def on_connect(client, userdata, flags, reason_code, properties=None):  # pylint: disable=unused-argument
     """ The callback for when the client receives a CONNACK response from the server."""
     logging.debug("Connected with result code: %s", reason_code)
     if reason_code == "Unsupported protocol version":
@@ -85,9 +90,10 @@ def on_connect(client, userdata, flags, reason_code, properties=None): # pylint:
 
     logging.info("Waiting for MQTT messages...")
 
-def on_message(client, userdata, msg): # pylint: disable=unused-argument
+
+def on_message(client, userdata, msg):  # pylint: disable=unused-argument
     """ The callback for when a PUBLISH message is received from the server."""
-    global state # pylint: disable=global-variable-not-assigned
+    global state  # pylint: disable=global-variable-not-assigned
     logging.debug("Received message: %s %s", msg.topic, msg.payload.decode())
 
     if msg.topic == teslamate_topic_update_version:
@@ -100,7 +106,8 @@ def on_message(client, userdata, msg): # pylint: disable=unused-argument
             logging.info("A new SW update to version: %s for your Tesla is available!", state.update_version)
         if msg.payload.decode() == "false":
             logging.debug("No SW update available.")
-            state.update_available_message_sent = False # Reset the message sent flag
+            state.update_available_message_sent = False  # Reset the message sent flag
+
 
 def setup_mqtt_client():
     """ Setup the MQTT client """
@@ -120,6 +127,7 @@ def setup_mqtt_client():
 
     return client
 
+
 def setup_telegram_bot():
     """ Setup the Telegram bot """
     logging.info("Setting up the Telegram bot...")
@@ -129,16 +137,22 @@ def setup_telegram_bot():
     logging.info("Connected to Telegram bot successfully.")
     return bot, chat_id
 
+
 def check_state_and_send_messages(bot, chat_id):
     """ Check the state and send messages if necessary """
     logging.debug("Checking state and sending messages...")
-    global state # pylint: disable=global-variable-not-assigned
+    global state  # pylint: disable=global-variable-not-assigned
 
     if state.update_available and not state.update_available_message_sent:
         logging.debug("Update available and message not sent.")
         if state.update_version != "unknown":
             logging.info("A new SW update to version: %s for your Tesla is available!", state.update_version)
-            message_text = "<b>"+"SW Update"+"</b>\n"+"A new SW update to version: "+ state.update_version + " for your Tesla is available!"
+            message_text = "<b>" \
+                "SW Update" \
+                "</b>\n" \
+                "A new SW update to version: " \
+                + state.update_version \
+                + " for your Tesla is available!"
 
         logging.debug("Sending message.")
         bot.send_message(
@@ -151,6 +165,7 @@ def check_state_and_send_messages(bot, chat_id):
         # Mark the message as sent
         state.update_available_message_sent = True
         logging.debug("Message sent flag set.")
+
 
 # Main function
 def main():
@@ -174,6 +189,7 @@ def main():
     logging.info("Disconnected from MQTT broker.")
     client.loop_stop()
     logging.info("Exiting the Teslamate Telegram bot.")
+
 
 # Entry point
 if __name__ == "__main__":
