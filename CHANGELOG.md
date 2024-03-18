@@ -18,6 +18,7 @@
 - feat: introduce a global state and send messages depending on the state, improve logging
 - ci: add python linting workflow
 - ci: set max line length for flake8 python linting workflow
+- ci: install requirements before linting
 - stlye: fix flake8 findings
 - stlye: fix pylint findings
 
