@@ -6,6 +6,14 @@
 
 ### Enhancements
 
+### Bug Fixes
+
+## [0.6.5] - 2023-03-18
+
+### New Features
+
+### Enhancements
+
 - feat: use logging instead of simple print
 - feat: introduce a global state and send messages depending on the state, improve logging
 - ci: add python linting workflow
@@ -165,7 +173,8 @@ fix: Subscription to teslamate_topic_update_version added
 
 - Initial release with proof of concept, see #1
 
-[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.4...HEAD
+[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.5...HEAD
+[0.6.5]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.1...v0.6.2
