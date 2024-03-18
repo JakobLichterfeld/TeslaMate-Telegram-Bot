@@ -1,6 +1,7 @@
 """ A simple Telegram bot that listens to MQTT messages from Teslamate
-and sends them to a Telegram chat."""  # pylint: disable=line-too-long
+and sends them to a Telegram chat."""
 import os
+import sys
 import time
 import logging
 import paho.mqtt.client as mqtt
@@ -58,7 +59,7 @@ def get_env_variable(var_name, default_value=None):
     if var_value is None and var_name in [TELEGRAM_BOT_API_KEY, TELEGRAM_BOT_CHAT_ID]:
         logging.error("Error: Please set the environment variable %s and try again.", var_name)
         # raise EnvironmentError(f"Environment variable {var_name} is not set.")
-        exit(1)
+        sys.exit(1)
     return var_value
 
 
@@ -67,15 +68,15 @@ def on_connect(client, userdata, flags, reason_code, properties=None):  # pylint
     logging.debug("Connected with result code: %s", reason_code)
     if reason_code == "Unsupported protocol version":
         logging.error("Unsupported protocol version")
-        exit(1)
+        sys.exit(1)
     if reason_code == "Client identifier not valid":
         logging.error("Client identifier not valid")
-        exit(1)
+        sys.exit(1)
     if reason_code == 0:
         logging.info("Connected successfully to MQTT broker")
     else:
         logging.error("Connection failed")
-        exit(1)
+        sys.exit(1)
 
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
