@@ -8,6 +8,14 @@
 
 ### Bug Fixes
 
+## [0.7.1] - 2023-03-19
+
+### New Features
+
+### Enhancements
+
+### Bug Fixes
+
 - fix: correct use of async functions
 
 ## [0.7.0] - 2023-03-18
@@ -176,7 +184,8 @@ fix: Subscription to teslamate_topic_update_version added
 
 - Initial release with proof of concept, see #1
 
-[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.0...HEAD
+[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.4...v0.7.0
 [0.6.4]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.2...v0.6.3
