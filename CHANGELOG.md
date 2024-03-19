@@ -8,6 +8,8 @@
 
 ### Bug Fixes
 
+- fix: correct use of async functions
+
 ## [0.7.0] - 2023-03-18
 
 ### New Features

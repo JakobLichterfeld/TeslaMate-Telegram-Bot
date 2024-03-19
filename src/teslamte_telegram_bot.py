@@ -2,8 +2,8 @@
 and sends them to a Telegram chat."""
 import os
 import sys
-import time
 import logging
+import asyncio
 import paho.mqtt.client as mqtt
 from telegram import Bot
 from telegram.constants import ParseMode
@@ -139,7 +139,7 @@ def setup_telegram_bot():
     return bot, chat_id
 
 
-def check_state_and_send_messages(bot, chat_id):
+async def check_state_and_send_messages(bot, chat_id):
     """ Check the state and send messages if necessary """
     logging.debug("Checking state and sending messages...")
     global state  # pylint: disable=global-variable-not-assigned
@@ -156,7 +156,7 @@ def check_state_and_send_messages(bot, chat_id):
                 + " for your Tesla is available!"
 
         logging.debug("Sending message.")
-        bot.send_message(
+        await bot.send_message(
             chat_id,
             text=message_text,
             parse_mode=ParseMode.HTML,
@@ -169,7 +169,7 @@ def check_state_and_send_messages(bot, chat_id):
 
 
 # Main function
-def main():
+async def main():
     """ Main function"""
     logging.info("Starting the Teslamate Telegram bot.")
     client = setup_mqtt_client()
@@ -178,10 +178,10 @@ def main():
     client.loop_start()
     try:
         while True:
-            check_state_and_send_messages(bot, chat_id)
+            await check_state_and_send_messages(bot, chat_id)
 
             logging.debug("Sleeping for 1 second.")
-            time.sleep(1)
+            await asyncio.sleep(1)
     except KeyboardInterrupt:
         logging.info("Exiting after receiving SIGINT (Ctrl+C) signal.")
 
@@ -194,4 +194,4 @@ def main():
 
 # Entry point
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
