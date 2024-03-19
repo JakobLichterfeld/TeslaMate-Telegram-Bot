@@ -4,6 +4,9 @@
 
 ### New Features
 
+- feat: send telegram message when bot started and stopped (not working for docker stop)
+- feat: add emoticons to messages
+
 ### Enhancements
 
 ### Bug Fixes

@@ -149,31 +149,40 @@ async def check_state_and_send_messages(bot, chat_id):
         if state.update_version != "unknown":
             logging.info("A new SW update to version: %s for your Tesla is available!", state.update_version)
             message_text = "<b>" \
-                "SW Update" \
+                "SW Update 🎁" \
                 "</b>\n" \
                 "A new SW update to version: " \
                 + state.update_version \
                 + " for your Tesla is available!"
-
-        logging.debug("Sending message.")
-        await bot.send_message(
-            chat_id,
-            text=message_text,
-            parse_mode=ParseMode.HTML,
-        )
-        logging.debug("Message sent.")
+        await send_telegram_message_to_chat_id(bot, chat_id, message_text)
 
         # Mark the message as sent
         state.update_available_message_sent = True
         logging.debug("Message sent flag set.")
 
 
+async def send_telegram_message_to_chat_id(bot, chat_id, message_text):
+    """ Send a message to a chat ID """
+    logging.debug("Sending message.")
+    await bot.send_message(
+            chat_id,
+            text=message_text,
+            parse_mode=ParseMode.HTML,
+        )
+    logging.debug("Message sent.")
+
+
 # Main function
 async def main():
     """ Main function"""
-    logging.info("Starting the Teslamate Telegram bot.")
+    logging.info("Starting the Teslamate Telegram Bot.")
     client = setup_mqtt_client()
     bot, chat_id = setup_telegram_bot()
+    start_message = "<b>" \
+        "Teslamate Telegram Bot started ✅" \
+        "</b>\n" \
+        "and will notify as soon as a new SW version is available."
+    await send_telegram_message_to_chat_id(bot, chat_id, start_message)
 
     client.loop_start()
     try:
@@ -185,11 +194,17 @@ async def main():
     except KeyboardInterrupt:
         logging.info("Exiting after receiving SIGINT (Ctrl+C) signal.")
 
+    # clean exit
     logging.info("Disconnecting from MQTT broker.")
     client.disconnect()
     logging.info("Disconnected from MQTT broker.")
     client.loop_stop()
     logging.info("Exiting the Teslamate Telegram bot.")
+    stop_message = "<b>" \
+        "Teslamate Telegram Bot stopped. 🛑" \
+        "</b>\n "
+    await send_telegram_message_to_chat_id(bot, chat_id, stop_message)
+    await bot.close()
 
 
 # Entry point
