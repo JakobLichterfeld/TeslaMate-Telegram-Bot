@@ -189,8 +189,8 @@ async def main():
         while True:
             await check_state_and_send_messages(bot, chat_id)
 
-            logging.debug("Sleeping for 1 second.")
-            await asyncio.sleep(1)
+            logging.debug("Sleeping for 30 second.")
+            await asyncio.sleep(30)
     except KeyboardInterrupt:
         logging.info("Exiting after receiving SIGINT (Ctrl+C) signal.")
 

@@ -9,6 +9,8 @@
 
 ### Enhancements
 
+- feat: decrease checking interval to 30 seconds to reduce system load
+
 ### Bug Fixes
 
 ## [0.7.1] - 2023-03-19
