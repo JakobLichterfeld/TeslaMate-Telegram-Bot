@@ -11,6 +11,7 @@
 ### Enhancements
 
 - feat: decrease checking interval to 30 seconds to reduce system load
+- feat: check some environment variables for valid values
 
 ### Bug Fixes
 

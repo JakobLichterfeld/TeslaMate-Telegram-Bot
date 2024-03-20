@@ -61,6 +61,9 @@ def get_env_variable(var_name, default_value=None):
 
 # MQTT topics
 car_id = get_env_variable(CAR_ID, CAR_ID_DEFAULT)
+if not car_id.isdigit() or int(car_id) < 1:
+    logging.error("Error: Please set the environment variable %s to a valid number and try again.", CAR_ID)
+    sys.exit(1)
 teslamate_mqtt_topic_base = f"teslamate/cars/{car_id}/"
 teslamate_mqtt_topic_update_available = teslamate_mqtt_topic_base + "update_available"
 teslamate_mqtt_topic_update_version = teslamate_mqtt_topic_base + "update_version"
@@ -126,7 +129,10 @@ def setup_mqtt_client():
     client.username_pw_set(username, password)
 
     host = get_env_variable(MQTT_BROKER_HOST, MQTT_BROKER_HOST_DEFAULT)
-    port = int(get_env_variable(MQTT_BROKER_PORT, MQTT_BROKER_PORT_DEFAULT))
+    port = get_env_variable(MQTT_BROKER_PORT, MQTT_BROKER_PORT_DEFAULT)
+    if not port.isnumeric() or int(port) < 1:
+        logging.error("Error: Please set the environment variable %s to a valid number and try again.", MQTT_BROKER_PORT)
+        sys.exit(1)
     logging.info("Connect to MQTT broker at %s:%s", host, port)
     client.connect(host, port, MQTT_BROKER_KEEPALIVE)
 
@@ -138,6 +144,9 @@ def setup_telegram_bot():
     logging.info("Setting up the Telegram bot...")
     bot = Bot(get_env_variable(TELEGRAM_BOT_API_KEY))
     chat_id = get_env_variable(TELEGRAM_BOT_CHAT_ID)
+    if not chat_id.isnumeric() or int(chat_id) < 1:
+        logging.error("Error: Please set the environment variable %s to a valid number and try again.", TELEGRAM_BOT_CHAT_ID)
+        sys.exit(1)
 
     logging.info("Connected to Telegram bot successfully.")
     return bot, chat_id
