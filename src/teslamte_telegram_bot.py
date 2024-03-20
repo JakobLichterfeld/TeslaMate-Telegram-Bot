@@ -131,7 +131,8 @@ def setup_mqtt_client():
     host = get_env_variable(MQTT_BROKER_HOST, MQTT_BROKER_HOST_DEFAULT)
     port = get_env_variable(MQTT_BROKER_PORT, MQTT_BROKER_PORT_DEFAULT)
     if not port.isnumeric() or int(port) < 1:
-        logging.error("Error: Please set the environment variable %s to a valid number and try again.", MQTT_BROKER_PORT)
+        logging.error("Error: Please set the environment variable %s to a valid number and try again.",
+                      MQTT_BROKER_PORT)
         sys.exit(1)
     logging.info("Connect to MQTT broker at %s:%s", host, port)
     client.connect(host, port, MQTT_BROKER_KEEPALIVE)
@@ -145,7 +146,8 @@ def setup_telegram_bot():
     bot = Bot(get_env_variable(TELEGRAM_BOT_API_KEY))
     chat_id = get_env_variable(TELEGRAM_BOT_CHAT_ID)
     if not chat_id.isnumeric() or int(chat_id) < 1:
-        logging.error("Error: Please set the environment variable %s to a valid number and try again.", TELEGRAM_BOT_CHAT_ID)
+        logging.error("Error: Please set the environment variable %s to a valid number and try again.",
+                      TELEGRAM_BOT_CHAT_ID)
         sys.exit(1)
 
     logging.info("Connected to Telegram bot successfully.")
