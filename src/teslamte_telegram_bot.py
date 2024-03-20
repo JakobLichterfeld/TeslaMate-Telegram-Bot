@@ -11,7 +11,7 @@ from telegram.constants import ParseMode
 ##############################################################################
 
 # Default values
-CAR_ID = 1
+CAR_ID_DEFAULT = 1
 MQTT_BROKER_HOST_DEFAULT = '127.0.0.1'
 MQTT_BROKER_PORT_DEFAULT = 1883
 MQTT_BROKER_KEEPALIVE = 60
@@ -25,10 +25,7 @@ MQTT_BROKER_USERNAME = 'MQTT_BROKER_USERNAME'
 MQTT_BROKER_PASSWORD = 'MQTT_BROKER_PASSWORD'
 MQTT_BROKER_HOST = 'MQTT_BROKER_HOST'
 MQTT_BROKER_PORT = 'MQTT_BROKER_PORT'
-
-# MQTT topics
-teslamate_topic_update_available = f"teslamate/cars/{CAR_ID}/update_available"
-teslamate_topic_update_version = f"teslamate/cars/{CAR_ID}/update_version"
+CAR_ID = 'CAR_ID'
 
 ##############################################################################
 
@@ -50,7 +47,6 @@ class State:
 state = State()
 
 
-# Helper functions
 def get_env_variable(var_name, default_value=None):
     """ Get the environment variable or return a default value"""
     logging.debug("Getting environment variable %s", var_name)
@@ -61,6 +57,13 @@ def get_env_variable(var_name, default_value=None):
         # raise EnvironmentError(f"Environment variable {var_name} is not set.")
         sys.exit(1)
     return var_value
+
+
+# MQTT topics
+car_id = get_env_variable(CAR_ID, CAR_ID_DEFAULT)
+teslamate_mqtt_topic_base = f"teslamate/cars/{car_id}/"
+teslamate_mqtt_topic_update_available = teslamate_mqtt_topic_base + "update_available"
+teslamate_mqtt_topic_update_version = teslamate_mqtt_topic_base + "update_version"
 
 
 def on_connect(client, userdata, flags, reason_code, properties=None):  # pylint: disable=unused-argument
@@ -81,11 +84,12 @@ def on_connect(client, userdata, flags, reason_code, properties=None):  # pylint
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
     logging.info("Subscribing to MQTT topics:")
-    client.subscribe(teslamate_topic_update_available)
-    logging.info("Subscribed to MQTT topic: %s", teslamate_topic_update_available)
 
-    client.subscribe(teslamate_topic_update_version)
-    logging.info("Subscribed to MQTT topic: %s", teslamate_topic_update_version)
+    client.subscribe(teslamate_mqtt_topic_update_available)
+    logging.info("Subscribed to MQTT topic: %s", teslamate_mqtt_topic_update_available)
+
+    client.subscribe(teslamate_mqtt_topic_update_version)
+    logging.info("Subscribed to MQTT topic: %s", teslamate_mqtt_topic_update_version)
 
     logging.info("Subscribed to all MQTT topics.")
 
@@ -97,11 +101,11 @@ def on_message(client, userdata, msg):  # pylint: disable=unused-argument
     global state  # pylint: disable=global-variable-not-assigned
     logging.debug("Received message: %s %s", msg.topic, msg.payload.decode())
 
-    if msg.topic == teslamate_topic_update_version:
+    if msg.topic == teslamate_mqtt_topic_update_version:
         state.update_version = msg.payload.decode()
         logging.info("Update to version %s available.", state.update_version)
 
-    if msg.topic == teslamate_topic_update_available:
+    if msg.topic == teslamate_mqtt_topic_update_available:
         state.update_available = msg.payload.decode() == "true"
         if msg.payload.decode() == "true":
             logging.info("A new SW update to version: %s for your Tesla is available!", state.update_version)

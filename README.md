@@ -1,10 +1,10 @@
 # TeslaMate Telegram Bot
 
 [![CI](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/actions/workflows/buildx.yml/badge.svg)](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/actions/workflows/buildx.yml)
-[![](https://img.shields.io/docker/v/teslamatetelegrambot/teslamatetelegrambot/latest)](https://hub.docker.com/r/teslamatetelegrambot/teslamatetelegrambot)
-[![](https://img.shields.io/docker/pulls/teslamatetelegrambot/teslamatetelegrambot?color=%23099cec)](https://hub.docker.com/r/teslamatetelegrambot/teslamatetelegrambot)
-[![](https://img.shields.io/docker/image-size/teslamatetelegrambot/teslamatetelegrambot/latest)](https://hub.docker.com/r/teslamatetelegrambot/teslamatetelegrambot)
-[![donation](https://img.shields.io/badge/Donate-PayPal-informational.svg?logo=paypal)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZE9EHN48GYWMN&source=url)
+[![version](https://img.shields.io/docker/v/teslamatetelegrambot/teslamatetelegrambot/latest)](https://hub.docker.com/r/teslamatetelegrambot/teslamatetelegrambot)
+[![docker pulls](https://img.shields.io/docker/pulls/teslamatetelegrambot/teslamatetelegrambot?color=%23099cec)](https://hub.docker.com/r/teslamatetelegrambot/teslamatetelegrambot)
+[![image size](https://img.shields.io/docker/image-size/teslamatetelegrambot/teslamatetelegrambot/latest)](https://hub.docker.com/r/teslamatetelegrambot/teslamatetelegrambot)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-informational.svg?logo=paypal)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZE9EHN48GYWMN&source=url)
 
 This is a telegram bot written in Python to notify by Telegram message when a new SW update for your Tesla is available. It uses the MQTT topic which [TeslaMate](https://github.com/adriankumpf/teslamate) offers.
 
@@ -38,7 +38,7 @@ This is a telegram bot written in Python to notify by Telegram message when a ne
 - External internet access, to send telegram messages.
 - A mobile with [Telegram](https://telegram.org/) client installed
 - your own Telegram Bot, see [Creating a new telegram bot](https://core.telegram.org/bots#6-botfather)
-- your own Telegram chat id, see [get your telegram chat id](https://docs.influxdata.com/kapacitor/v1.5/event_handlers/telegram/#get-your-telegram-chat-id)
+- your own Telegram chat ID, see [get your telegram chat ID](https://docs.influxdata.com/kapacitor/v1.5/event_handlers/telegram/#get-your-telegram-chat-id)
 
 ## Installation
 
@@ -46,7 +46,7 @@ Make sure you fulfill the [Requirements](#requirements).
 
 It is recommended to backup your data first.
 
-This document provides the necessary steps for installation of TeslaMate Telegram Bot on a any system that runs Docker.
+This document provides the necessary steps for installation of TeslaMate Telegram Bot on an any system that runs Docker.
 
 This setup is recommended only if you are running TeslaMate Telegram Bot **on your home network**, as otherwise your telegram API tokens might be at risk.
 
@@ -60,10 +60,11 @@ This setup is recommended only if you are running TeslaMate Telegram Bot **on yo
           image: teslamatetelegrambot/teslamatetelegrambot:latest
           restart: unless-stopped
           environment:
-            - MQTT_BROKER_HOST=IP_Adress
-            - MQTT_BROKER_PORT=1883 #optional, default 1883
-            - MQTT_BROKER_USERNAME=username #optional, only needed when broker has authentication enabled
-            - MQTT_BROKER_PASSWORD=password #optional, only needed when broker has authentication enabled
+            # - CAR_ID  = 1 # optional, defaults to 1
+            - MQTT_BROKER_HOST=IP_Address
+            # - MQTT_BROKER_PORT=1883 #optional, defaults to 1883
+            # - MQTT_BROKER_USERNAME=username #optional, only needed when broker has authentication enabled
+            # - MQTT_BROKER_PASSWORD=password #optional, only needed when broker has authentication enabled
             - TELEGRAM_BOT_API_KEY=secret_api_key
             - TELEGRAM_BOT_CHAT_ID=secret_chat_id
           ports:
