@@ -4,6 +4,14 @@
 
 ### New Features
 
+### Enhancements
+
+### Bug Fixes
+
+## [0.7.2] - 2023-03-21
+
+### New Features
+
 - feat: send telegram message when bot started and stopped (not working for docker stop)
 - feat: add emoticons to messages
 - feat: car_id can be set via optional environment variable
@@ -192,7 +200,8 @@ fix: Subscription to teslamate_topic_update_version added
 
 - Initial release with proof of concept, see #1
 
-[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.1...HEAD
+[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.2...HEAD
+[0.7.2]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.4...v0.7.0
 [0.6.4]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.3...v0.6.4
