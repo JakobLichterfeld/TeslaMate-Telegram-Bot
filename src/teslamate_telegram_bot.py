@@ -53,17 +53,20 @@ def get_env_variable(var_name, default_value=None):
     var_value = os.getenv(var_name, default_value)
     logging.debug("Environment variable %s: %s", var_name, var_value)
     if var_value is None and var_name in [TELEGRAM_BOT_API_KEY, TELEGRAM_BOT_CHAT_ID]:
-        logging.error("Error: Please set the environment variable %s and try again.", var_name)
-        # raise EnvironmentError(f"Environment variable {var_name} is not set.")
-        sys.exit(1)
+        error_message_get_env_variable = f"Error: Please set the environment variable {var_name} and try again."
+        raise EnvironmentError(error_message_get_env_variable)
     return var_value
 
 
 # MQTT topics
-car_id = get_env_variable(CAR_ID, CAR_ID_DEFAULT)
-if not str(car_id).isdigit() or int(car_id) < 1:
-    logging.error("Error: Please set the environment variable %s to a valid number and try again.", CAR_ID)
-    sys.exit(1)
+try:
+    car_id = int(get_env_variable(CAR_ID, CAR_ID_DEFAULT))
+except ValueError as value_error_car_id:
+    error_message_car_id = (f"Error: Please set the environment variable {CAR_ID} "
+                            f"to a valid number and try again."
+                            )
+    raise EnvironmentError(error_message_car_id) from value_error_car_id
+
 teslamate_mqtt_topic_base = f"teslamate/cars/{car_id}/"
 teslamate_mqtt_topic_update_available = teslamate_mqtt_topic_base + "update_available"
 teslamate_mqtt_topic_update_version = teslamate_mqtt_topic_base + "update_version"
@@ -129,11 +132,13 @@ def setup_mqtt_client():
     client.username_pw_set(username, password)
 
     host = get_env_variable(MQTT_BROKER_HOST, MQTT_BROKER_HOST_DEFAULT)
-    port = get_env_variable(MQTT_BROKER_PORT, MQTT_BROKER_PORT_DEFAULT)
-    if not str(port).isnumeric() or int(port) < 1:
-        logging.error("Error: Please set the environment variable %s to a valid number and try again.",
-                      MQTT_BROKER_PORT)
-        sys.exit(1)
+    try:
+        port = int(get_env_variable(MQTT_BROKER_PORT, MQTT_BROKER_PORT_DEFAULT))
+    except ValueError as value_error_mqtt_broker_port:
+        error_message_mqtt_broker_port = (f"Error: Please set the environment variable {MQTT_BROKER_PORT} "
+                                          f"to a valid number and try again."
+                                          )
+        raise EnvironmentError(error_message_mqtt_broker_port) from value_error_mqtt_broker_port
     logging.info("Connect to MQTT broker at %s:%s", host, port)
     client.connect(host, port, MQTT_BROKER_KEEPALIVE)
 
@@ -144,11 +149,13 @@ def setup_telegram_bot():
     """ Setup the Telegram bot """
     logging.info("Setting up the Telegram bot...")
     bot = Bot(get_env_variable(TELEGRAM_BOT_API_KEY))
-    chat_id = get_env_variable(TELEGRAM_BOT_CHAT_ID)
-    if not str(chat_id).isnumeric() or int(chat_id) < 1:
-        logging.error("Error: Please set the environment variable %s to a valid number and try again.",
-                      TELEGRAM_BOT_CHAT_ID)
-        sys.exit(1)
+    try:
+        chat_id = int(get_env_variable(TELEGRAM_BOT_CHAT_ID))
+    except ValueError as value_error_chat_id:
+        error_message_chat_id = (f"Error: Please set the environment variable {TELEGRAM_BOT_CHAT_ID} "
+                                 f"to a valid number and try again."
+                                 )
+        raise EnvironmentError(error_message_chat_id) from value_error_chat_id
 
     logging.info("Connected to Telegram bot successfully.")
     return bot, chat_id
@@ -191,23 +198,28 @@ async def send_telegram_message_to_chat_id(bot, chat_id, message_text_to_send):
 async def main():
     """ Main function"""
     logging.info("Starting the Teslamate Telegram Bot.")
-    client = setup_mqtt_client()
-    bot, chat_id = setup_telegram_bot()
-    start_message = "<b>" \
-        "Teslamate Telegram Bot started ✅" \
-        "</b>\n" \
-        "and will notify as soon as a new SW version is available."
-    await send_telegram_message_to_chat_id(bot, chat_id, start_message)
-
-    client.loop_start()
     try:
-        while True:
-            await check_state_and_send_messages(bot, chat_id)
+        client = setup_mqtt_client()
+        bot, chat_id = setup_telegram_bot()
+        start_message = "<b>" \
+            "Teslamate Telegram Bot started ✅" \
+            "</b>\n" \
+            "and will notify as soon as a new SW version is available."
+        await send_telegram_message_to_chat_id(bot, chat_id, start_message)
 
-            logging.debug("Sleeping for 30 second.")
-            await asyncio.sleep(30)
-    except KeyboardInterrupt:
-        logging.info("Exiting after receiving SIGINT (Ctrl+C) signal.")
+        client.loop_start()
+        try:
+            while True:
+                await check_state_and_send_messages(bot, chat_id)
+
+                logging.debug("Sleeping for 30 second.")
+                await asyncio.sleep(30)
+        except KeyboardInterrupt:
+            logging.info("Exiting after receiving SIGINT (Ctrl+C) signal.")
+    except EnvironmentError as e:
+        logging.error(e)
+        logging.info("Sleeping for 2 minutes before exiting or restarting, depending on your restart policy.")
+        await asyncio.sleep(120)
 
     # clean exit
     logging.info("Disconnecting from MQTT broker.")
