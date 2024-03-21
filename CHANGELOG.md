@@ -6,6 +6,8 @@
 
 ### Enhancements
 
+- style: correct typo in filename
+
 ### Bug Fixes
 
 ## [0.7.2] - 2023-03-21

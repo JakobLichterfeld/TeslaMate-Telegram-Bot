@@ -23,4 +23,4 @@ RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /
 USER appuser
 
 # Run the application
-CMD ["python", "./src/teslamte_telegram_bot.py"]
+CMD ["python", "./src/teslamate_telegram_bot.py"]
