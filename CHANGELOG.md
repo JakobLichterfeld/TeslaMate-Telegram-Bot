@@ -6,11 +6,19 @@
 
 ### Enhancements
 
+### Bug Fixes
+
+## [0.7.3] - 2023-03-21
+
+### New Features
+
+### Enhancements
+
 - style: correct typo in filename
 
 ### Bug Fixes
 
-- fix: correct type check for some environment variables
+- fix: correct type check for some environment variables (#33, thanks @freinbichler for reporting)
 
 ## [0.7.2] - 2023-03-21
 
@@ -204,7 +212,8 @@ fix: Subscription to teslamate_topic_update_version added
 
 - Initial release with proof of concept, see #1
 
-[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.2...HEAD
+[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.3...HEAD
+[0.7.3]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.2...v0.7.3
 [0.7.2]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.6.4...v0.7.0
