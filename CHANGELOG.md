@@ -14,7 +14,7 @@
 
 - feat: send telegram message when bot started and stopped (not working for docker stop)
 - feat: add emoticons to messages
-- feat: car_id can be set via optional environment variable
+- feat: car_id can be set via optional environment variable (see readme)
 
 ### Enhancements
 
