@@ -8,7 +8,15 @@
 
 ### Bug Fixes
 
-- fix: resolve UnboundLocalError if update version is empty
+## [0.7.4] - 2023-03-21
+
+### New Features
+
+### Enhancements
+
+### Bug Fixes
+
+- fix: resolve UnboundLocalError if update version is empty (#34)
 
 ## [0.7.3] - 2023-03-21
 
@@ -214,7 +222,8 @@ fix: Subscription to teslamate_topic_update_version added
 
 - Initial release with proof of concept, see #1
 
-[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.3...HEAD
+[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.4...HEAD
+[0.7.4]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.3...v0.7.4
 [0.7.3]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.2...v0.7.3
 [0.7.2]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.0...v0.7.1
