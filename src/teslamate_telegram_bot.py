@@ -169,19 +169,19 @@ async def check_state_and_send_messages(bot, chat_id):
                 "A new SW update to version: " \
                 + state.update_version \
                 + " for your Tesla is available!"
-        await send_telegram_message_to_chat_id(bot, chat_id, message_text)
+            await send_telegram_message_to_chat_id(bot, chat_id, message_text)
 
-        # Mark the message as sent
-        state.update_available_message_sent = True
-        logging.debug("Message sent flag set.")
+            # Mark the message as sent
+            state.update_available_message_sent = True
+            logging.debug("Message sent flag set.")
 
 
-async def send_telegram_message_to_chat_id(bot, chat_id, message_text):
+async def send_telegram_message_to_chat_id(bot, chat_id, message_text_to_send):
     """ Send a message to a chat ID """
     logging.debug("Sending message.")
     await bot.send_message(
             chat_id,
-            text=message_text,
+            text=message_text_to_send,
             parse_mode=ParseMode.HTML,
         )
     logging.debug("Message sent.")

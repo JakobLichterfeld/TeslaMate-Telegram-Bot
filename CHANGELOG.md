@@ -8,6 +8,8 @@
 
 ### Bug Fixes
 
+- fix: resolve UnboundLocalError if update version is empty
+
 ## [0.7.3] - 2023-03-21
 
 ### New Features
