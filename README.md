@@ -53,8 +53,6 @@ This setup is recommended only if you are running TeslaMate Telegram Bot **on yo
 1. Create a file called `docker-compose.yml` with the following content (adopt with your own values):
 
    ```yml title="docker-compose.yml"
-      version: "3"
-
       services:
         teslamatetelegrambot:
           image: teslamatetelegrambot/teslamatetelegrambot:latest

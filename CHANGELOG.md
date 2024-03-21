@@ -6,6 +6,8 @@
 
 ### Enhancements
 
+- doc: remove version tag in example docker compose as it is obsolete in docker 25.05
+
 ### Bug Fixes
 
 ## [0.7.5] - 2023-03-21
