@@ -12,6 +12,7 @@
 
 - feat: decrease checking interval to 30 seconds to reduce system load
 - feat: check some environment variables for valid values
+- fix: do not send a message if an empty update SW version is received after a successful update of the car SW
 
 ### Bug Fixes
 

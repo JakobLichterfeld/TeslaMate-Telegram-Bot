@@ -161,7 +161,7 @@ async def check_state_and_send_messages(bot, chat_id):
 
     if state.update_available and not state.update_available_message_sent:
         logging.debug("Update available and message not sent.")
-        if state.update_version != "unknown":
+        if state.update_version != "unknown" and state.update_version != "":
             logging.info("A new SW update to version: %s for your Tesla is available!", state.update_version)
             message_text = "<b>" \
                 "SW Update 🎁" \
