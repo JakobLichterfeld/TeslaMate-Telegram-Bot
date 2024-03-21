@@ -12,7 +12,8 @@
 
 ### New Features
 
-- feat: allow negative chat_id, which means group chats and rewrite type check for some environment variables including 2 minute wait before retry
+- feat: allow negative chat_id, which means group chats (#35)
+- feat: rewrite type check for some environment variables including 2 minute wait before retry (#36)
 
 ### Enhancements
 
