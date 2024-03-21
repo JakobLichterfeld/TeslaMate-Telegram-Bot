@@ -10,6 +10,8 @@
 
 ### Bug Fixes
 
+- fix: correct type check for some environment variables
+
 ## [0.7.2] - 2023-03-21
 
 ### New Features
