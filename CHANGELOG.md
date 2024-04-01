@@ -7,6 +7,7 @@
 ### Enhancements
 
 - doc: remove version tag in example docker compose as it is obsolete in docker 25.05
+- build(deps): bump dorny/paths-filter from 3.0.1 to 3.0.2 (#37)
 
 ### Bug Fixes
 
