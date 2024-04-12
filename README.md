@@ -59,10 +59,11 @@ This setup is recommended only if you are running TeslaMate Telegram Bot **on yo
           restart: unless-stopped
           environment:
             # - CAR_ID=1 # optional, defaults to 1
-            - MQTT_BROKER_HOST=IP_Address
+            - MQTT_BROKER_HOST=IP_Address # defaults to 127.0.0.1
             # - MQTT_BROKER_PORT=1883 #optional, defaults to 1883
             # - MQTT_BROKER_USERNAME=username #optional, only needed when broker has authentication enabled
             # - MQTT_BROKER_PASSWORD=password #optional, only needed when broker has authentication enabled
+            # - MQTT_NAMESPACE=namespace # optional, only needed when you specified MQTT_NAMESPACE on your TeslaMate installation
             - TELEGRAM_BOT_API_KEY=secret_api_key
             - TELEGRAM_BOT_CHAT_ID=secret_chat_id
           ports:

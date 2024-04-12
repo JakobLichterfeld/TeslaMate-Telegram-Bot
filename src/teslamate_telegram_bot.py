@@ -17,6 +17,7 @@ MQTT_BROKER_PORT_DEFAULT = 1883
 MQTT_BROKER_KEEPALIVE = 60
 MQTT_BROKER_USERNAME_DEFAULT = ''
 MQTT_BROKER_PASSWORD_DEFAULT = ''
+MQTT_NAMESPACE_DEFAULT = ''
 
 # Environment variables
 TELEGRAM_BOT_API_KEY = 'TELEGRAM_BOT_API_KEY'
@@ -25,6 +26,7 @@ MQTT_BROKER_USERNAME = 'MQTT_BROKER_USERNAME'
 MQTT_BROKER_PASSWORD = 'MQTT_BROKER_PASSWORD'
 MQTT_BROKER_HOST = 'MQTT_BROKER_HOST'
 MQTT_BROKER_PORT = 'MQTT_BROKER_PORT'
+MQTT_NAMESPACE = 'MQTT_NAMESPACE'
 CAR_ID = 'CAR_ID'
 
 ##############################################################################
@@ -67,7 +69,14 @@ except ValueError as value_error_car_id:
                             )
     raise EnvironmentError(error_message_car_id) from value_error_car_id
 
-teslamate_mqtt_topic_base = f"teslamate/cars/{car_id}/"
+
+namespace = get_env_variable(MQTT_NAMESPACE, MQTT_NAMESPACE_DEFAULT)
+if namespace:
+    logging.info("Using MQTT namespace: %s", namespace)
+    teslamate_mqtt_topic_base = f"teslamate/{namespace}/cars/{car_id}/"
+else:
+    teslamate_mqtt_topic_base = f"teslamate/cars/{car_id}/"
+
 teslamate_mqtt_topic_update_available = teslamate_mqtt_topic_base + "update_available"
 teslamate_mqtt_topic_update_version = teslamate_mqtt_topic_base + "update_version"
 

@@ -4,6 +4,8 @@
 
 ### New Features
 
+- feat: support MQTT_NAMESPACE via optional environment variable (#38)
+
 ### Enhancements
 
 - doc: remove version tag in example docker compose as it is obsolete in docker 25.05
