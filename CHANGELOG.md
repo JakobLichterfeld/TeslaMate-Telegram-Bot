@@ -4,6 +4,14 @@
 
 ### New Features
 
+### Enhancements
+
+### Bug Fixes
+
+## [0.7.6] - 2024-04-12
+
+### New Features
+
 - feat: support MQTT_NAMESPACE via optional environment variable (#38)
 
 ### Enhancements
@@ -13,7 +21,7 @@
 
 ### Bug Fixes
 
-## [0.7.5] - 2023-03-21
+## [0.7.5] - 2024-03-21
 
 ### New Features
 
@@ -24,7 +32,7 @@
 
 ### Bug Fixes
 
-## [0.7.4] - 2023-03-21
+## [0.7.4] - 2024-03-21
 
 ### New Features
 
@@ -34,7 +42,7 @@
 
 - fix: resolve UnboundLocalError if update version is empty (#34)
 
-## [0.7.3] - 2023-03-21
+## [0.7.3] - 2024-03-21
 
 ### New Features
 
@@ -46,7 +54,7 @@
 
 - fix: correct type check for some environment variables (#33, thanks @freinbichler for reporting)
 
-## [0.7.2] - 2023-03-21
+## [0.7.2] - 2024-03-21
 
 ### New Features
 
@@ -62,7 +70,7 @@
 
 ### Bug Fixes
 
-## [0.7.1] - 2023-03-19
+## [0.7.1] - 2024-03-19
 
 ### New Features
 
@@ -72,7 +80,7 @@
 
 - fix: correct use of async functions
 
-## [0.7.0] - 2023-03-18
+## [0.7.0] - 2024-03-18
 
 ### New Features
 
@@ -88,7 +96,7 @@
 
 ### Bug Fixes
 
-## [0.6.4] - 2023-03-17
+## [0.6.4] - 2024-03-17
 
 ### New Features
 
@@ -101,7 +109,7 @@
 
 - fix: correct number of positional arguments for on_connect() since mqtt5
 
-## [0.6.3] - 2023-03-16
+## [0.6.3] - 2024-03-16
 
 ### New Features
 
@@ -115,7 +123,7 @@
 
 fix: Subscription to teslamate_topic_update_version added
 
-## [0.6.2] - 2023-03-16
+## [0.6.2] - 2024-03-16
 
 ### New Features
 
@@ -130,7 +138,7 @@ fix: Subscription to teslamate_topic_update_version added
 
 - fix: remove double bot message
 
-## [0.6.1] - 2023-03-15
+## [0.6.1] - 2024-03-15
 
 ### New Features
 
@@ -140,7 +148,7 @@ fix: Subscription to teslamate_topic_update_version added
 
 - fix: re-add notification for available SW update only
 
-## [0.6.0] - 2023-03-15
+## [0.6.0] - 2024-03-15
 
 ### New Features
 
@@ -238,7 +246,8 @@ fix: Subscription to teslamate_topic_update_version added
 
 - Initial release with proof of concept, see #1
 
-[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.5...HEAD
+[unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.6...HEAD
+[0.7.6]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.5...v0.7.6
 [0.7.5]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.4...v0.7.5
 [0.7.4]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.3...v0.7.4
 [0.7.3]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.2...v0.7.3
