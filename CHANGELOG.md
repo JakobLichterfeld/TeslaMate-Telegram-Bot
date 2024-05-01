@@ -6,7 +6,8 @@
 
 ### Enhancements
 
-build(deps): bump paho-mqtt from 2.0.0 to 2.1.0 (#39)
+- build(deps): bump paho-mqtt from 2.0.0 to 2.1.0 (#39)
+- build(deps): bump python-telegram-bot from 21.0.1 to 21.1.1 (#40)
 
 ### Bug Fixes
 
