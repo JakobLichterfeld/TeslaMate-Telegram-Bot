@@ -6,6 +6,8 @@
 
 ### Enhancements
 
+build(deps): bump paho-mqtt from 2.0.0 to 2.1.0 (#39)
+
 ### Bug Fixes
 
 ## [0.7.6] - 2024-04-12
