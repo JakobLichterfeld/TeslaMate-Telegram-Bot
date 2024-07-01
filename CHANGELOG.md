@@ -9,6 +9,8 @@
 - build(deps): bump paho-mqtt from 2.0.0 to 2.1.0 (#39)
 - build(deps): bump python-telegram-bot from 21.0.1 to 21.1.1 (#40)
 - build(deps): bump python-telegram-bot from 21.1.1 to 21.2 (#42)
+- build(deps): bump docker/build-push-action from 5 to 6 (#44)
+- build(deps): bump python-telegram-bot from 21.2 to 21.3 (#43)
 
 ### Bug Fixes
 
