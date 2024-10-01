@@ -21,7 +21,7 @@ jobs:
 
   lint:
     needs: check_paths
-    if: needs.check_paths.outputs.githubfolder == 'false' || github.event_name == 'schedule'
+    if: needs.check_paths.outputs.githubfolder != 'true' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
       -
