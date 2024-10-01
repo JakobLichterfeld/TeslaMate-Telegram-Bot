@@ -6,6 +6,8 @@
 
 ### Enhancements
 
+- doc: Remove unnecessary build configuration in docker compose
+
 #### Build, CI, internal
 
 - build(deps): bump paho-mqtt from 2.0.0 to 2.1.0 (#39)
@@ -17,6 +19,7 @@
 - build(deps): bump python-telegram-bot from 21.4 to 21.6 (#46)
 - ci: specify python version in GitHub workflow
 - ci: pin github action dependencies to protect against supply chain attacks, refactor to use common check_paths workflow
+- ci(fix): handle empty path filter output
 
 ### Bug Fixes
 
