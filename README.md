@@ -68,9 +68,6 @@ This setup is recommended only if you are running TeslaMate Telegram Bot **on yo
             - TELEGRAM_BOT_CHAT_ID=secret_chat_id
           ports:
             - 1883
-          build:
-            context: .
-            dockerfile: Dockerfile
    ```
 
 2. Build and start the docker container with `docker compose up`. To run the containers in the background add the `-d` flag:
