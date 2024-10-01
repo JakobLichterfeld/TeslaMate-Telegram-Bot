@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - "master"
+      - "main"
     paths:
       - "**/*"
       - "!.github/**" # Important: Exclude PRs related to .github from auto-run
