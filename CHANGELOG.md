@@ -20,6 +20,7 @@
 - ci: specify python version in GitHub workflow
 - ci: pin github action dependencies to protect against supply chain attacks, refactor to use common check_paths workflow
 - ci(fix): handle empty path filter output
+- style: UPPER_CASE naming style for constant name
 
 ### Bug Fixes
 
