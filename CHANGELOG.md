@@ -14,6 +14,7 @@
 - build(deps): bump python-telegram-bot from 21.3 to 21.4 (#45)
 - build(deps): bump python-telegram-bot from 21.4 to 21.6 (#46)
 - ci: specify python version in GitHub workflow
+- ci: pin github action dependencies to protect against supply chain attacks, refactor to use common check_paths workflow
 
 ### Bug Fixes
 
