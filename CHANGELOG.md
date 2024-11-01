@@ -21,6 +21,11 @@
 - ci: pin github action dependencies to protect against supply chain attacks, refactor to use common check_paths workflow
 - ci(fix): handle empty path filter output
 - style: UPPER_CASE naming style for constant name
+- build(deps): bump actions/setup-python from 5.2.0 to 5.3.0 (#47)
+- build(deps): bump actions/checkout from 4.1.7 to 4.2.2 (#48)
+- build(deps): bump actions/upload-artifact from 4.4.0 to 4.4.3 (#49)
+- build(deps): bump docker/setup-buildx-action from 3.6.1 to 3.7.1 (#50)
+- build(deps): bump python from 3.12-slim-bookworm to 3.13-slim-bookworm (#51)
 
 ### Bug Fixes
 
