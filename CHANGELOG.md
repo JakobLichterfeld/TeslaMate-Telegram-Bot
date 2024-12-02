@@ -28,6 +28,7 @@
 - build(deps): bump python from 3.12-slim-bookworm to 3.13-slim-bookworm (#51)
 - build(deps): bump python-telegram-bot from 21.6 to 21.7 (#52)
 - build(deps): bump docker/build-push-action from 6.9.0 to 6.10.0 (#53)
+- build(deps): bump docker/metadata-action from 5.5.1 to 5.6.1 (#54)
 
 ### Bug Fixes
 
