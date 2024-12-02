@@ -26,6 +26,7 @@
 - build(deps): bump actions/upload-artifact from 4.4.0 to 4.4.3 (#49)
 - build(deps): bump docker/setup-buildx-action from 3.6.1 to 3.7.1 (#50)
 - build(deps): bump python from 3.12-slim-bookworm to 3.13-slim-bookworm (#51)
+- build(deps): bump python-telegram-bot from 21.6 to 21.7 (#52)
 
 ### Bug Fixes
 
