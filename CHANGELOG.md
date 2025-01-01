@@ -10,6 +10,7 @@
 
 - build(deps): bump docker/setup-buildx-action from 3.7.1 to 3.8.0 (#55)
 - build(deps): bump python-telegram-bot from 21.7 to 21.9 (#57)
+- build(deps): bump actions/upload-artifact from 4.4.3 to 4.5.0 (#56)
 
 ### Bug Fixes
 
