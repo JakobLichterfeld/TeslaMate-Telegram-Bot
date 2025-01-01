@@ -8,6 +8,8 @@
 
 #### Build, CI, internal
 
+- build(deps): bump docker/setup-buildx-action from 3.7.1 to 3.8.0 (#55)
+
 ### Bug Fixes
 
 ## [0.7.7] - 2024-12-02
