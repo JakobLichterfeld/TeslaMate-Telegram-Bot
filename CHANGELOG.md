@@ -9,6 +9,7 @@
 #### Build, CI, internal
 
 - build(deps): bump docker/setup-buildx-action from 3.7.1 to 3.8.0 (#55)
+- build(deps): bump python-telegram-bot from 21.7 to 21.9 (#57)
 
 ### Bug Fixes
 
