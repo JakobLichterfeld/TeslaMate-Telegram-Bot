@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### New Features
+
+### Enhancements
+
+#### Build, CI, internal
+
+### Bug Fixes
+
 ## [0.7.8] - 2025-02-01
 
 ### New Features
@@ -289,6 +299,7 @@ fix: Subscription to teslamate_topic_update_version added
 
 - Initial release with proof of concept, see #1
 
+[Unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.8...HEAD
 [0.7.8]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.7...v0.7.8
 [0.7.7]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.6...v0.7.7
 [0.7.6]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.5...v0.7.6
