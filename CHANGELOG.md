@@ -11,6 +11,11 @@
 - build(deps): bump docker/setup-buildx-action from 3.7.1 to 3.8.0 (#55)
 - build(deps): bump python-telegram-bot from 21.7 to 21.9 (#57)
 - build(deps): bump actions/upload-artifact from 4.4.3 to 4.5.0 (#56)
+- build(deps): bump python-telegram-bot from 21.9 to 21.10 (#58)
+- build(deps): bump actions/upload-artifact from 4.5.0 to 4.6.0 (#59)
+- build(deps): bump actions/setup-python from 5.3.0 to 5.4.0 (#60)
+- build(deps): bump docker/setup-qemu-action from 3.2.0 to 3.3.0 (#61)
+- build(deps): bump docker/build-push-action from 6.10.0 to 6.13.0 (#62)
 
 ### Bug Fixes
 
