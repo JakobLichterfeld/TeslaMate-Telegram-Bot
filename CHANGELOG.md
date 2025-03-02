@@ -8,6 +8,12 @@
 
 #### Build, CI, internal
 
+- build(deps): bump docker/setup-buildx-action from 3.8.0 to 3.10.0 (#63)
+- build(deps): bump actions/download-artifact from 4.1.8 to 4.1.9 (#64)
+- build(deps): bump docker/setup-qemu-action from 3.3.0 to 3.6.0 (#65)
+- build(deps): bump docker/metadata-action from 5.6.1 to 5.7.0 (#66)
+- build(deps): bump actions/upload-artifact from 4.6.0 to 4.6.1 (#67)
+
 ### Bug Fixes
 
 ## [0.7.8] - 2025-02-01
