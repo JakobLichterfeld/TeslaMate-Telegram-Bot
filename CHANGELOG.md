@@ -14,6 +14,12 @@
 - build(deps): bump docker/metadata-action from 5.6.1 to 5.7.0 (#66)
 - build(deps): bump actions/upload-artifact from 4.6.0 to 4.6.1 (#67)
 - style: add flake8 disable comments for global state variable
+- build(deps): bump actions/setup-python from 5.4.0 to 5.5.0 (#68)
+- build(deps): bump actions/download-artifact from 4.1.9 to 4.2.1 (#69)
+- build(deps): bump docker/login-action from 3.3.0 to 3.4.0 (#70)
+- build(deps): bump docker/build-push-action from 6.13.0 to 6.15.0 (#71)
+- build(deps): bump actions/upload-artifact from 4.6.1 to 4.6.2 (#72)
+- build(deps): bump python-telegram-bot from 21.10 to 22.0 (#73)
 
 ### Bug Fixes
 
