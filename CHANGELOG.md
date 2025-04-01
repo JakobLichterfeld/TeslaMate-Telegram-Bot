@@ -13,6 +13,7 @@
 - build(deps): bump docker/setup-qemu-action from 3.3.0 to 3.6.0 (#65)
 - build(deps): bump docker/metadata-action from 5.6.1 to 5.7.0 (#66)
 - build(deps): bump actions/upload-artifact from 4.6.0 to 4.6.1 (#67)
+- style: add flake8 disable comments for global state variable
 
 ### Bug Fixes
 
