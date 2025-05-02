@@ -113,7 +113,7 @@ def on_connect(client, userdata, flags, reason_code, properties=None):  # pylint
 
 def on_message(client, userdata, msg):  # pylint: disable=unused-argument
     """ The callback for when a PUBLISH message is received from the server."""
-    global state  # pylint: disable=global-variable-not-assigned, noqa: F824
+    global state  # pylint: disable=global-variable-not-assigned, # noqa: F824
     logging.debug("Received message: %s %s", msg.topic, msg.payload.decode())
 
     if msg.topic == TESLAMATE_MQTT_TOPIC_UPDATE_VERSION:
@@ -173,7 +173,7 @@ def setup_telegram_bot():
 async def check_state_and_send_messages(bot, chat_id):
     """ Check the state and send messages if necessary """
     logging.debug("Checking state and sending messages...")
-    global state  # pylint: disable=global-variable-not-assigned, noqa: F824
+    global state  # pylint: disable=global-variable-not-assigned, # noqa: F824
 
     if state.update_available and not state.update_available_message_sent:
         logging.debug("Update available and message not sent.")

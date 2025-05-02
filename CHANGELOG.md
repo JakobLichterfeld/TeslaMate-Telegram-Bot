@@ -20,6 +20,7 @@
 - build(deps): bump docker/build-push-action from 6.13.0 to 6.15.0 (#71)
 - build(deps): bump actions/upload-artifact from 4.6.1 to 4.6.2 (#72)
 - build(deps): bump python-telegram-bot from 21.10 to 22.0 (#73)
+- style: update flake8 disable comments for global state variable to comply with flake8 7.2.0
 
 ### Bug Fixes
 
