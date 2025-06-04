@@ -24,6 +24,7 @@
 - build(deps): bump actions/setup-python from 5.5.0 to 5.6.0 (#76)
 - build(deps): bump docker/build-push-action from 6.15.0 to 6.16.0 (#74)
 - build(deps): bump docker/build-push-action from 6.15.0 to 6.16.0 (#75)
+- build(deps): bump docker/build-push-action from 6.16.0 to 6.18.0 (#77)
 
 ### Bug Fixes
 
