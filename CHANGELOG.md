@@ -27,6 +27,7 @@
 - build(deps): bump docker/build-push-action from 6.16.0 to 6.18.0 (#77)
 - build(deps): bump python-telegram-bot from 22.0 to 22.1 (#78)
 - build(deps): bump docker/setup-buildx-action from 3.10.0 to 3.11.1 (#79)
+- build(deps): bump python-telegram-bot from 22.1 to 22.2 (#80)
 
 ### Bug Fixes
 
