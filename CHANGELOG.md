@@ -35,6 +35,7 @@
 - build(deps): bump actions/download-artifact from 4.3.0 to 5.0.0 (#85)
 - build(deps): bump docker/login-action from 3.5.0 to 3.6.0 (#86)
 - build(deps): bump actions/setup-python from 5.6.0 to 6.0.0 (#87)
+- build(deps): bump python-telegram-bot from 22.3 to 22.5 (#88)
 
 ### Bug Fixes
 
