@@ -1,2 +1,2 @@
 paho-mqtt==2.1.0
-python-telegram-bot==22.3
+python-telegram-bot==22.5
