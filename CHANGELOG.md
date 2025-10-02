@@ -33,6 +33,7 @@
 - build(deps): bump actions/checkout from 4.2.2 to 5.0.0 (#83)
 - build(deps): bump docker/metadata-action from 5.7.0 to 5.8.0 (#84)
 - uild(deps): bump actions/download-artifact from 4.3.0 to 5.0.0 (#85)
+- build(deps): bump docker/login-action from 3.5.0 to 3.6.0 (#86)
 
 ### Bug Fixes
 
