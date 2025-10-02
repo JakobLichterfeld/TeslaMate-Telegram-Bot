@@ -32,7 +32,8 @@
 - build(deps): bump python-telegram-bot from 22.2 to 22.3 (#81)
 - build(deps): bump actions/checkout from 4.2.2 to 5.0.0 (#83)
 - build(deps): bump docker/metadata-action from 5.7.0 to 5.8.0 (#84)
-- uild(deps): bump actions/download-artifact from 4.3.0 to 5.0.0 (#85)
+- build(deps): bump actions/download-artifact from 4.3.0 to 5.0.0 (#85)
+- build(deps): bump actions/setup-python from 5.6.0 to 6.0.0 (#87)
 
 ### Bug Fixes
 
