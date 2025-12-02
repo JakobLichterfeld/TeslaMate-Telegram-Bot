@@ -39,6 +39,10 @@
 - build(deps): bump python from 3.13-slim-bookworm to 3.14-slim-bookworm (#91)
 - build(deps): bump actions/upload-artifact from 4.6.2 to 5.0.0 (#89)
 - build(deps): bump actions/download-artifact from 5.0.0 to 6.0.0 (#90)
+- build(deps): bump docker/setup-qemu-action from 3.6.0 to 3.7.0 (#92)
+- build(deps): bump docker/metadata-action from 5.8.0 to 5.10.0 (#93)
+- build(deps): bump actions/checkout from 5.0.0 to 6.0.0 (#94)
+- build(deps): bump actions/setup-python from 6.0.0 to 6.1.0 (#95)
 
 ### Bug Fixes
 
