@@ -73,12 +73,12 @@ except ValueError as value_error_car_id:
 namespace = get_env_variable(MQTT_NAMESPACE, MQTT_NAMESPACE_DEFAULT)
 if namespace:
     logging.info("Using MQTT namespace: %s", namespace)
-    teslamate_mqtt_topic_base = f"teslamate/{namespace}/cars/{car_id}/"
+    TESLAMATE_MQTT_TOPIC_BASE = f"teslamate/{namespace}/cars/{car_id}/"
 else:
-    teslamate_mqtt_topic_base = f"teslamate/cars/{car_id}/"
+    TESLAMATE_MQTT_TOPIC_BASE = f"teslamate/cars/{car_id}/"
 
-TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE = teslamate_mqtt_topic_base + "update_available"
-TESLAMATE_MQTT_TOPIC_UPDATE_VERSION = teslamate_mqtt_topic_base + "update_version"
+TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE = TESLAMATE_MQTT_TOPIC_BASE + "update_available"
+TESLAMATE_MQTT_TOPIC_UPDATE_VERSION = TESLAMATE_MQTT_TOPIC_BASE + "update_version"
 
 
 def on_connect(client, userdata, flags, reason_code, properties=None):  # pylint: disable=unused-argument
