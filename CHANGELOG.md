@@ -9,6 +9,7 @@
 #### Build, CI, internal
 
 - build(deps): bump docker/setup-buildx-action from 3.11.1 to 3.12.0 (#96)
+- build(deps): bump actions/checkout from 6.0.0 to 6.0.1 (#97)
 
 ### Bug Fixes
 
