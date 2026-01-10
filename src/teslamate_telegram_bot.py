@@ -1,5 +1,6 @@
-""" A simple Telegram bot that listens to MQTT messages from Teslamate
+"""A simple Telegram bot that listens to MQTT messages from Teslamate
 and sends them to a Telegram chat."""
+
 import os
 import sys
 import logging
@@ -12,37 +13,42 @@ from telegram.constants import ParseMode
 
 # Default values
 CAR_ID_DEFAULT = 1
-MQTT_BROKER_HOST_DEFAULT = '127.0.0.1'
+MQTT_BROKER_HOST_DEFAULT = "127.0.0.1"
 MQTT_BROKER_PORT_DEFAULT = 1883
 MQTT_BROKER_KEEPALIVE = 60
-MQTT_BROKER_USERNAME_DEFAULT = ''
-MQTT_BROKER_PASSWORD_DEFAULT = ''
-MQTT_NAMESPACE_DEFAULT = ''
+MQTT_BROKER_USERNAME_DEFAULT = ""
+MQTT_BROKER_PASSWORD_DEFAULT = ""
+MQTT_NAMESPACE_DEFAULT = ""
 
 # Environment variables
-TELEGRAM_BOT_API_KEY = 'TELEGRAM_BOT_API_KEY'
-TELEGRAM_BOT_CHAT_ID = 'TELEGRAM_BOT_CHAT_ID'
-MQTT_BROKER_USERNAME = 'MQTT_BROKER_USERNAME'
-MQTT_BROKER_PASSWORD = 'MQTT_BROKER_PASSWORD'
-MQTT_BROKER_HOST = 'MQTT_BROKER_HOST'
-MQTT_BROKER_PORT = 'MQTT_BROKER_PORT'
-MQTT_NAMESPACE = 'MQTT_NAMESPACE'
-CAR_ID = 'CAR_ID'
+TELEGRAM_BOT_API_KEY = "TELEGRAM_BOT_API_KEY"
+TELEGRAM_BOT_CHAT_ID = "TELEGRAM_BOT_CHAT_ID"
+MQTT_BROKER_USERNAME = "MQTT_BROKER_USERNAME"
+MQTT_BROKER_PASSWORD = "MQTT_BROKER_PASSWORD"
+MQTT_BROKER_HOST = "MQTT_BROKER_HOST"
+MQTT_BROKER_PORT = "MQTT_BROKER_PORT"
+MQTT_NAMESPACE = "MQTT_NAMESPACE"
+CAR_ID = "CAR_ID"
 
 ##############################################################################
 
 # Logging
 # Configure the logging module to output info level logs and above
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 
 # Global state
 class State:
-    """ A class to hold the global state of the application."""
+    """A class to hold the global state of the application."""
+
     def __init__(self):
-        self.update_available = False               # Flag to indicate if an update is available
-        self.update_available_message_sent = False  # Flag to indicate if the message has been sent
-        self.update_version = "unknown"             # The version of the update
+        self.update_available = False  # Flag to indicate if an update is available
+        self.update_available_message_sent = (
+            False  # Flag to indicate if the message has been sent
+        )
+        self.update_version = "unknown"  # The version of the update
 
 
 # Global state
@@ -50,12 +56,14 @@ state = State()
 
 
 def get_env_variable(var_name, default_value=None):
-    """ Get the environment variable or return a default value"""
+    """Get the environment variable or return a default value"""
     logging.debug("Getting environment variable %s", var_name)
     var_value = os.getenv(var_name, default_value)
     logging.debug("Environment variable %s: %s", var_name, var_value)
     if var_value is None and var_name in [TELEGRAM_BOT_API_KEY, TELEGRAM_BOT_CHAT_ID]:
-        error_message_get_env_variable = f"Error: Please set the environment variable {var_name} and try again."
+        error_message_get_env_variable = (
+            f"Error: Please set the environment variable {var_name} and try again."
+        )
         raise EnvironmentError(error_message_get_env_variable)
     return var_value
 
@@ -64,9 +72,10 @@ def get_env_variable(var_name, default_value=None):
 try:
     car_id = int(get_env_variable(CAR_ID, CAR_ID_DEFAULT))
 except ValueError as value_error_car_id:
-    ERROR_MESSAGE_CAR_ID = (f"Error: Please set the environment variable {CAR_ID} "
-                            f"to a valid number and try again."
-                            )
+    ERROR_MESSAGE_CAR_ID = (
+        f"Error: Please set the environment variable {CAR_ID} "
+        f"to a valid number and try again."
+    )
     raise EnvironmentError(ERROR_MESSAGE_CAR_ID) from value_error_car_id
 
 
@@ -82,7 +91,7 @@ TESLAMATE_MQTT_TOPIC_UPDATE_VERSION = TESLAMATE_MQTT_TOPIC_BASE + "update_versio
 
 
 def on_connect(client, userdata, flags, reason_code, properties=None):  # pylint: disable=unused-argument
-    """ The callback for when the client receives a CONNACK response from the server."""
+    """The callback for when the client receives a CONNACK response from the server."""
     logging.debug("Connected with result code: %s", reason_code)
     if reason_code == "Unsupported protocol version":
         logging.error("Unsupported protocol version")
@@ -112,8 +121,8 @@ def on_connect(client, userdata, flags, reason_code, properties=None):  # pylint
 
 
 def on_message(client, userdata, msg):  # pylint: disable=unused-argument
-    """ The callback for when a PUBLISH message is received from the server."""
-    global state  # pylint: disable=global-variable-not-assigned, # noqa: F824
+    """The callback for when a PUBLISH message is received from the server."""
+    global state  # pylint: disable=global-variable-not-assigned
     logging.debug("Received message: %s %s", msg.topic, msg.payload.decode())
 
     if msg.topic == TESLAMATE_MQTT_TOPIC_UPDATE_VERSION:
@@ -123,14 +132,17 @@ def on_message(client, userdata, msg):  # pylint: disable=unused-argument
     if msg.topic == TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE:
         state.update_available = msg.payload.decode() == "true"
         if msg.payload.decode() == "true":
-            logging.info("A new SW update to version: %s for your Tesla is available!", state.update_version)
+            logging.info(
+                "A new SW update to version: %s for your Tesla is available!",
+                state.update_version,
+            )
         if msg.payload.decode() == "false":
             logging.debug("No SW update available.")
             state.update_available_message_sent = False  # Reset the message sent flag
 
 
 def setup_mqtt_client():
-    """ Setup the MQTT client """
+    """Setup the MQTT client"""
     logging.info("Setting up the MQTT client...")
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.on_connect = on_connect
@@ -144,10 +156,13 @@ def setup_mqtt_client():
     try:
         port = int(get_env_variable(MQTT_BROKER_PORT, MQTT_BROKER_PORT_DEFAULT))
     except ValueError as value_error_mqtt_broker_port:
-        error_message_mqtt_broker_port = (f"Error: Please set the environment variable {MQTT_BROKER_PORT} "
-                                          f"to a valid number and try again."
-                                          )
-        raise EnvironmentError(error_message_mqtt_broker_port) from value_error_mqtt_broker_port
+        error_message_mqtt_broker_port = (
+            f"Error: Please set the environment variable {MQTT_BROKER_PORT} "
+            f"to a valid number and try again."
+        )
+        raise EnvironmentError(
+            error_message_mqtt_broker_port
+        ) from value_error_mqtt_broker_port
     logging.info("Connect to MQTT broker at %s:%s", host, port)
     client.connect(host, port, MQTT_BROKER_KEEPALIVE)
 
@@ -155,15 +170,16 @@ def setup_mqtt_client():
 
 
 def setup_telegram_bot():
-    """ Setup the Telegram bot """
+    """Setup the Telegram bot"""
     logging.info("Setting up the Telegram bot...")
     bot = Bot(get_env_variable(TELEGRAM_BOT_API_KEY))
     try:
         chat_id = int(get_env_variable(TELEGRAM_BOT_CHAT_ID))
     except ValueError as value_error_chat_id:
-        error_message_chat_id = (f"Error: Please set the environment variable {TELEGRAM_BOT_CHAT_ID} "
-                                 f"to a valid number and try again."
-                                 )
+        error_message_chat_id = (
+            f"Error: Please set the environment variable {TELEGRAM_BOT_CHAT_ID} "
+            f"to a valid number and try again."
+        )
         raise EnvironmentError(error_message_chat_id) from value_error_chat_id
 
     logging.info("Connected to Telegram bot successfully.")
@@ -171,20 +187,25 @@ def setup_telegram_bot():
 
 
 async def check_state_and_send_messages(bot, chat_id):
-    """ Check the state and send messages if necessary """
+    """Check the state and send messages if necessary"""
     logging.debug("Checking state and sending messages...")
-    global state  # pylint: disable=global-variable-not-assigned, # noqa: F824
+    global state  # pylint: disable=global-variable-not-assigned
 
     if state.update_available and not state.update_available_message_sent:
         logging.debug("Update available and message not sent.")
         if state.update_version not in ("unknown", ""):
-            logging.info("A new SW update to version: %s for your Tesla is available!", state.update_version)
-            message_text = "<b>" \
-                "SW Update 🎁" \
-                "</b>\n" \
-                "A new SW update to version: " \
-                + state.update_version \
+            logging.info(
+                "A new SW update to version: %s for your Tesla is available!",
+                state.update_version,
+            )
+            message_text = (
+                "<b>"
+                "SW Update 🎁"
+                "</b>\n"
+                "A new SW update to version: "
+                + state.update_version
                 + " for your Tesla is available!"
+            )
             await send_telegram_message_to_chat_id(bot, chat_id, message_text)
 
             # Mark the message as sent
@@ -193,27 +214,29 @@ async def check_state_and_send_messages(bot, chat_id):
 
 
 async def send_telegram_message_to_chat_id(bot, chat_id, message_text_to_send):
-    """ Send a message to a chat ID """
+    """Send a message to a chat ID"""
     logging.debug("Sending message.")
     await bot.send_message(
-            chat_id,
-            text=message_text_to_send,
-            parse_mode=ParseMode.HTML,
-        )
+        chat_id,
+        text=message_text_to_send,
+        parse_mode=ParseMode.HTML,
+    )
     logging.debug("Message sent.")
 
 
 # Main function
 async def main():
-    """ Main function"""
+    """Main function"""
     logging.info("Starting the Teslamate Telegram Bot.")
     try:
         client = setup_mqtt_client()
         bot, chat_id = setup_telegram_bot()
-        start_message = "<b>" \
-            "Teslamate Telegram Bot started ✅" \
-            "</b>\n" \
+        start_message = (
+            "<b>"
+            "Teslamate Telegram Bot started ✅"
+            "</b>\n"
             "and will notify as soon as a new SW version is available."
+        )
         await send_telegram_message_to_chat_id(bot, chat_id, start_message)
 
         client.loop_start()
@@ -227,7 +250,9 @@ async def main():
             logging.info("Exiting after receiving SIGINT (Ctrl+C) signal.")
     except EnvironmentError as e:
         logging.error(e)
-        logging.info("Sleeping for 2 minutes before exiting or restarting, depending on your restart policy.")
+        logging.info(
+            "Sleeping for 2 minutes before exiting or restarting, depending on your restart policy."
+        )
         await asyncio.sleep(120)
 
     # clean exit
@@ -236,9 +261,7 @@ async def main():
     logging.info("Disconnected from MQTT broker.")
     client.loop_stop()
     logging.info("Exiting the Teslamate Telegram bot.")
-    stop_message = "<b>" \
-        "Teslamate Telegram Bot stopped. 🛑" \
-        "</b>\n "
+    stop_message = "<b>Teslamate Telegram Bot stopped. 🛑</b>\n "
     await send_telegram_message_to_chat_id(bot, chat_id, stop_message)
     await bot.close()
 

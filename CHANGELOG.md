@@ -15,6 +15,7 @@
 - build(deps): bump actions/download-artifact from 6.0.0 to 7.0.0 (#98)
 - build(deps): bump actions/upload-artifact from 5.0.0 to 6.0.0 (#99)
 - chore: rename branch to main
+- feat: use ruff as linter and formatter for python files
 
 ### Bug Fixes
 
