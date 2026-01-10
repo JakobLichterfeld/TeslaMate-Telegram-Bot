@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+**Note for contributors:** The default branch was renamed to `main`. Please update your local repository accordingly (see GitHub hint when visiting [JakobLichterfeld/TeslaMate-Telegram-Bot](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot) or [GitHub documentation](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-branches-in-your-repository/renaming-a-branch#updating-a-local-clone-after-a-branch-name-changes) for more information).
+
 ### New Features
 
 ### Enhancements
@@ -12,6 +14,7 @@
 - build(deps): bump actions/checkout from 6.0.0 to 6.0.1 (#97)
 - build(deps): bump actions/download-artifact from 6.0.0 to 7.0.0 (#98)
 - build(deps): bump actions/upload-artifact from 5.0.0 to 6.0.0 (#99)
+- chore: rename branch to main
 
 ### Bug Fixes
 

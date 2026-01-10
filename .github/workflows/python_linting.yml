@@ -5,7 +5,7 @@ on:
   pull_request:
   push:
     branches:
-      - "master"
+      - "main"
     paths:
       - "**/*"
       - "!.github/**" # Important: Exclude PRs related to .github from auto-run
