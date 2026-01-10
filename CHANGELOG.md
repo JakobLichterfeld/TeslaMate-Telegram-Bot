@@ -16,6 +16,7 @@
 - build(deps): bump actions/upload-artifact from 5.0.0 to 6.0.0 (#99)
 - chore: rename branch to main
 - feat: use ruff as linter and formatter for python files
+- chore: add treefmt as code formatting multiplexer
 
 ### Bug Fixes
 
