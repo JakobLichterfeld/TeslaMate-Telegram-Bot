@@ -267,5 +267,10 @@ async def main():
 
 
 # Entry point
-if __name__ == "__main__":
+def main_sync():
+    """Synchronous entry point for the bot."""
     asyncio.run(main())
+
+
+if __name__ == "__main__":
+    main_sync()

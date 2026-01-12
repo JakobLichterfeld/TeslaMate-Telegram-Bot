@@ -1,0 +1,29 @@
+[project]
+name = "teslamate-telegram-bot"
+description = "A Telegram bot which sends a message if an update for your Tesla is available (use TeslaMate MQTT)."
+dynamic = ["version"]
+authors = [
+  { name = "Jakob Lichterfeld" },
+]
+license = {file = "LICENSE"}
+readme = "README.md"
+keywords = ["python", "mqtt", "telegram-bot", "tesla", "mqtt-client", "paho-mqtt", "mqtt-connector", "teslamate-mqtt-topic"]
+requires-python = ">=3.13"
+dependencies = [
+    "paho-mqtt==2.1.0",
+    "python-telegram-bot==22.5",
+]
+
+[project.urls]
+repository = "https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot"
+changelog = "https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/blob/main/CHANGELOG.md"
+
+[project.scripts]
+teslamate-telegram-bot = "teslamate_telegram_bot:main_sync"
+
+[build-system]
+requires = ["setuptools>=80", "setuptools-scm>=9"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}

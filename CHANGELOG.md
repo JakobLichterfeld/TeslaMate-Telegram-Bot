@@ -18,6 +18,7 @@
 - feat: use ruff as linter and formatter for python files
 - chore: add treefmt as code formatting multiplexer
 - ci: update Python version to 3.14 in linting workflow
+- build: Migrate to pyproject.toml for modern project and dependency management
 
 ### Bug Fixes
 
