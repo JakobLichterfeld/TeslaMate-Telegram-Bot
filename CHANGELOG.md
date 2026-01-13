@@ -19,6 +19,7 @@
 - chore: add treefmt as code formatting multiplexer
 - ci: update Python version to 3.14 in linting workflow
 - build: Migrate to pyproject.toml for modern project and dependency management
+- build: Optimize Dockerfile with multi-stage build
 
 ### Bug Fixes
 
