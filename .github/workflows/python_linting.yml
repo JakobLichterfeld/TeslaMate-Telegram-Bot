@@ -32,12 +32,11 @@ jobs:
           python-version: "3.14"
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install ruff
-          pip install .
+          python -m pip install --upgrade pip uv
+          uv pip install . --system
       - name: Lint with Ruff
         run: |
-          ruff check
+          uvx ruff check
       - name: Format with Ruff
         run: |
-          ruff format
+          uvx ruff format

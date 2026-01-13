@@ -5,7 +5,7 @@ dynamic = ["version"]
 authors = [
   { name = "Jakob Lichterfeld" },
 ]
-license = {file = "LICENSE"}
+license = "MIT"
 readme = "README.md"
 keywords = ["python", "mqtt", "telegram-bot", "tesla", "mqtt-client", "paho-mqtt", "mqtt-connector", "teslamate-mqtt-topic"]
 requires-python = ">=3.13"

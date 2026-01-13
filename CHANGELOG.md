@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+Docker: Dropped `armv7` Docker image support due to `uv` base image unavailability for this architecture.
+
 **Note for contributors:** The default branch was renamed to `main`. Please update your local repository accordingly (see GitHub hint when visiting [JakobLichterfeld/TeslaMate-Telegram-Bot](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot) or [GitHub documentation](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-branches-in-your-repository/renaming-a-branch#updating-a-local-clone-after-a-branch-name-changes) for more information).
 
 ### New Features
@@ -20,6 +22,7 @@
 - ci: update Python version to 3.14 in linting workflow
 - build: Migrate to pyproject.toml for modern project and dependency management
 - build: Optimize Dockerfile with multi-stage build
+- build: Migrate to uv for Python dependency management and build optimization
 
 ### Bug Fixes
 

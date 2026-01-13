@@ -1,25 +1,25 @@
 # Stage 1: Build stage
-FROM python:3.14-slim-trixie AS builder
+FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim AS builder
 
 # Set environment variables
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED=1
+# Compiling Python source files to bytecode
+ENV UV_COMPILE_BYTECODE=1
 
 # Set the working directory
 WORKDIR /app
 
-# Upgrade pip
-RUN python -m pip install --upgrade pip
-
 # Copy project definition
 COPY pyproject.toml .
+COPY uv.lock .
 COPY src ./src
 
 # Install the package and its dependencies into a specific prefix
 # This keeps the build environment clean.
-RUN python -m pip install . --prefix=/opt/built
+RUN uv pip install . --prefix=/opt/built
 
 # Stage 2: Runtime stage
 FROM python:3.14-slim-trixie AS app
