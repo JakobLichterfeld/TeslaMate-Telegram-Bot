@@ -23,6 +23,9 @@ This is a telegram bot written in Python to notify by Telegram message when a ne
   - [Requirements](#requirements)
   - [Installation](#installation)
   - [Update](#update)
+  - [NixOS Installation](#nixos-installation)
+    - [Additional Requirements](#additional-requirements)
+    - [Instructions](#instructions)
   - [Contributing](#contributing)
   - [Donation](#donation)
   - [Disclaimer](#disclaimer)
@@ -90,6 +93,59 @@ and restart the stack with `docker compose up`. To run the containers in the bac
 
 ```bash
 docker compose up -d
+```
+
+## NixOS Installation
+
+This guide explains how to install and run the TeslaMate Telegram Bot as a service on a [NixOS](https://nixos.org/) system using the provided Nix flake module.
+
+This setup is recommended only if you are running TeslaMate Telegram Bot **on your home network**, as otherwise your telegram API tokens might be at risk.
+
+### Additional Requirements
+
+- NixOS (if you are new to NixOS, see [NixOS getting started](https://nixos.org/learn/))
+
+### Instructions
+
+We provide a flake module that can be used to install TeslaMate Telegram Bot on NixOS. To use it, you need to have Nix flakes enabled. If you don't have them enabled yet, follow the [NixOS documentation](https://nixos.wiki/wiki/Flakes).
+
+The options for the module are documented in the [module.nix](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/blob/main/nix/module.nix).
+
+In the `inputs` section of your flake add:
+
+```nix
+teslamate-telegram-bot.url = "github:JakobLichterfeld/TeslaMate-Telegram-Bot";
+```
+
+If you would like to pin to a specific version, you can do so for example like this:
+
+```nix
+teslamate-telegram-bot.url = "github:JakobLichterfeld/TeslaMate-Telegram-Bot?rev=<hash-here>"; # vx.y.z
+```
+
+To enable the TeslaMate Telegram Bot service, your config could look like this (for all option, see module.nix):
+
+```nix
+{
+  config,
+  lib,
+  inputs,
+  ...
+}:
+{
+imports = [ inputs.teslamate-telegram-bot.nixosModules.default ];
+
+config = services.teslamate-telegram-bot = {
+      enable = true;
+      secretsFile = "/run/secrets/teslamate-telegram-bot.env"; # you can use agenix for sure: config.age.secrets.teslamate-telegram-bot.path;
+      # the secrets file must contain at least:
+      #  - `TELEGRAM_BOT_API_KEY=secret_api_key`
+      #  - `TELEGRAM_BOT_CHAT_ID=secret_chat_id`
+
+      # Optional values:
+      #  - `MQTT_BROKER_PASSWORD=password` # only needed when broker has authentication enabled
+    };
+}
 ```
 
 ## Contributing

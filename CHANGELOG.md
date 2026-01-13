@@ -8,6 +8,8 @@ Docker: Dropped `armv7` Docker image support due to `uv` base image unavailabili
 
 ### New Features
 
+- feat(nix): Implement Nix flake for development, packaging, and deployment as NixOS service
+
 ### Enhancements
 
 #### Build, CI, internal
@@ -22,7 +24,7 @@ Docker: Dropped `armv7` Docker image support due to `uv` base image unavailabili
 - ci: update Python version to 3.14 in linting workflow
 - build: Migrate to pyproject.toml for modern project and dependency management
 - build: Optimize Dockerfile with multi-stage build
-- build: Migrate to uv for Python dependency management and build optimization
+- build: Migrate to uv for Python dependency management and build optimization, drop armv7 support
 
 ### Bug Fixes
 
