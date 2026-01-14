@@ -56,7 +56,7 @@ in
       };
     };
     autoStart = lib.mkOption {
-      type = types.bool;
+      type = lib.types.bool;
       default = true;
       description = "Whether to start TeslaMate Telegram Bot on boot.";
     };
