@@ -209,8 +209,8 @@ Docker: Dropped `armv7` Docker image support due to `uv` base image unavailabili
 - ci: add python linting workflow
 - ci: set max line length for flake8 python linting workflow
 - ci: install requirements before linting
-- stlye: fix flake8 findings
-- stlye: fix pylint findings
+- style: fix flake8 findings
+- style: fix pylint findings
 
 ### Bug Fixes
 
@@ -286,7 +286,7 @@ fix: Subscription to teslamate_topic_update_version added
 - refactor: improve maintainability by extracting methods, extract environment variable handling, default value handling, add docstrings
 - ci: enable dependabot for docker dependencies
 - build: Bump python from 3.11-slim-bookworm to 3.12-slim-bookworm (#32)
-- feat: update paho-mqtt dependencie to 2.0.0
+- feat: update paho-mqtt dependency to 2.0.0
 - chore: Bump python-telegram-bot from 13.5 to 21.0.1
 
 ### Bug Fixes
@@ -297,7 +297,7 @@ fix: Subscription to teslamate_topic_update_version added
 
 ### Enhancements
 
-- updateded requirements
+- updated requirements
 
 ### Bug Fixes
 
@@ -344,7 +344,7 @@ fix: Subscription to teslamate_topic_update_version added
 
 ### Enhancements
 
-- store configuration in seperate files, see #4
+- store configuration in separate files, see #4
 - possibility to exit with STRG+C
 - bit better messages on connection
 
@@ -356,7 +356,7 @@ fix: Subscription to teslamate_topic_update_version added
 
 ### Enhancements
 
-- Implemetation in python, as there are libraries for mqtt and telegram bot available for cool features in the future
+- Implementation in python, as there are libraries for mqtt and telegram bot available for cool features in the future
 
 ### Bug Fixes
 
