@@ -7,27 +7,13 @@ on:
       githubfolder:
         description: "changes to .github folder"
         value: ${{ jobs.check_paths.githubfolder }}
-  push:
-    paths:
-      - "**/*"
-      - "!.github/**" # Important: Exclude PRs related to .github from auto-run
-      - "!.github/workflows/**" # Important: Exclude PRs related to .github/workflows from auto-run
-      - "!.github/actions/**" # Important: Exclude PRs related to .github/actions from auto-run
-    branches: ["ci"]
-  pull_request_target:
-    branches: ["main"]
-    paths:
-      - "**/*"
-      - "!.github/**" # Important: Exclude PRs related to .github from auto-run
-      - "!.github/workflows/**" # Important: Exclude PRs related to .github/workflows from auto-run
-      - "!.github/actions/**" # Important: Exclude PRs related to .github/actions from auto-run
 
 permissions:
   contents: read
 
 jobs:
   check_paths:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       githubfolder: ${{ steps.filter.outputs.githubfolder }}
     steps:

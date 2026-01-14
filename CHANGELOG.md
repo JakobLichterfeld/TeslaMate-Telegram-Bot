@@ -25,6 +25,7 @@ Docker: Dropped `armv7` Docker image support due to `uv` base image unavailabili
 - build: Migrate to pyproject.toml for modern project and dependency management
 - build: Optimize Dockerfile with multi-stage build
 - build: Migrate to uv for Python dependency management and build optimization, drop armv7 support
+- feat(ci): Overhaul and modularize CI workflows
 
 ### Bug Fixes
 

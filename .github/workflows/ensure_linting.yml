@@ -1,0 +1,41 @@
+name: Ensure Linting
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  check_linting:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Install Nix
+        uses: nixbuild/nix-quick-install-action@2c9db80fb984ceb1bcaa77cdda3fdf8cfba92035 # v34
+
+      - name: Nix binary cache
+        uses: nix-community/cache-nix-action@b426b118b6dc86d6952988d396aa7c6b09776d08 # v7.0.0
+        with:
+          # restore and save a cache using this key
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          # if there's no cache hit, restore a cache by this prefix
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          # collect garbage until Nix store size (in bytes) is at most this number
+          # before trying to save a new cache
+          # 1G = 1073741824
+          gc-max-store-size-linux: 1073741824
+          # do purge caches
+          purge: true
+          # purge all versions of the cache
+          purge-prefixes: nix-${{ runner.os }}-
+          # created more than this number of seconds ago
+          # relative to the start of the `Post Restore and save Nix store` phase
+          purge-created: 0
+          # except any version with the key that is the same as the `primary-key`
+          purge-primary-key: never
+
+      - name: Run treefmt in CI mode
+        run: nix develop --override-input devenv-root "file+file://"<(printf %s "$PWD") . --command treefmt --ci
+        # or use: https://github.com/cachix/git-hooks.nix?tab=readme-ov-file
