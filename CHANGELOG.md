@@ -12,6 +12,8 @@ Docker: Dropped `armv7` Docker image support due to `uv` base image unavailabili
 
 ### Enhancements
 
+- docs: add DevOps badge to Readme
+
 #### Build, CI, internal
 
 - build(deps): bump docker/setup-buildx-action from 3.11.1 to 3.12.0 (#96)

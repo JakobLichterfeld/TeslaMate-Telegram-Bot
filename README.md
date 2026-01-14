@@ -1,6 +1,7 @@
 # TeslaMate Telegram Bot
 
-[![CI](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/actions/workflows/buildx.yml/badge.svg)](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/actions/workflows/buildx.yml)
+[![DevOps](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/actions/workflows/devops.yml/badge.svg)](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/actions/workflows/devops.yml)
+[![Publish Docker images](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/actions/workflows/buildx.yml/badge.svg)](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/actions/workflows/buildx.yml)
 [![version](https://img.shields.io/docker/v/teslamatetelegrambot/teslamatetelegrambot/latest)](https://hub.docker.com/r/teslamatetelegrambot/teslamatetelegrambot)
 [![docker pulls](https://img.shields.io/docker/pulls/teslamatetelegrambot/teslamatetelegrambot?color=%23099cec)](https://hub.docker.com/r/teslamatetelegrambot/teslamatetelegrambot)
 [![image size](https://img.shields.io/docker/image-size/teslamatetelegrambot/teslamatetelegrambot/latest)](https://hub.docker.com/r/teslamatetelegrambot/teslamatetelegrambot)
