@@ -8,7 +8,7 @@
       # Construct a PEP 440 compliant version string based on git status
       versionStr =
         # If the working tree is dirty...
-        if self.dirtyRev != null then "0.0.0+dirty"
+        if self ? "dirtyRev" then "0.0.0+dirty"
         # Otherwise, if clean, use the short commit hash.
         else "0.0.0+git.${self.shortRev or "unknown"}";
     in

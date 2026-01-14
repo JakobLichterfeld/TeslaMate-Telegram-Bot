@@ -30,6 +30,8 @@ Docker: Dropped `armv7` Docker image support due to `uv` base image unavailabili
 
 ### Bug Fixes
 
+- fix(nix): ensure Nix build runs on a clean git repository
+
 ## [0.7.9] - 2025-12-02
 
 ### New Features
