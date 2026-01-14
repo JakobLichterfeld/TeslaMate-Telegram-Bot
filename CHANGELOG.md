@@ -1,10 +1,13 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.0] - 2026-01-14
 
-Docker: Dropped `armv7` Docker image support due to `uv` base image unavailability for this architecture.
+Docker:
 
-**Note for contributors:** The default branch was renamed to `main`. Please update your local repository accordingly (see GitHub hint when visiting [JakobLichterfeld/TeslaMate-Telegram-Bot](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot) or [GitHub documentation](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-branches-in-your-repository/renaming-a-branch#updating-a-local-clone-after-a-branch-name-changes) for more information).
+- Reduced image size by 16 %
+- **Breaking Change**: Dropped `armv7` Docker image support due to `uv` base image unavailability for this architecture.
+
+Note for contributors: The default branch was renamed to `main`. Please update your local repository accordingly (see GitHub hint when visiting [JakobLichterfeld/TeslaMate-Telegram-Bot](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot) or [GitHub documentation](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-branches-in-your-repository/renaming-a-branch#updating-a-local-clone-after-a-branch-name-changes) for more information).
 
 ### New Features
 
@@ -371,7 +374,7 @@ fix: Subscription to teslamate_topic_update_version added
 
 - Initial release with proof of concept, see #1
 
-[Unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.9...HEAD
+[1.0.0]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.9...v1.0.0
 [0.7.9]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.8...v0.7.9
 [0.7.8]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.7...v0.7.8
 [0.7.7]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.6...v0.7.7
