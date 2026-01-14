@@ -55,7 +55,7 @@ in
         description = "MQTT namespace, only needed when you specified MQTT_NAMESPACE on your TeslaMate installation.";
       };
     };
-    autoStart = mkOption {
+    autoStart = lib.mkOption {
       type = types.bool;
       default = true;
       description = "Whether to start TeslaMate Telegram Bot on boot.";

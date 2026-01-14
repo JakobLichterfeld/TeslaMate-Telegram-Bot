@@ -31,6 +31,7 @@ Docker: Dropped `armv7` Docker image support due to `uv` base image unavailabili
 ### Bug Fixes
 
 - fix(nix): ensure Nix build runs on a clean git repository
+- fix(nix): correct mkOption usage for autoStart in module.nix
 
 ## [0.7.9] - 2025-12-02
 
