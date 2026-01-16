@@ -6,6 +6,8 @@
 
 ### Enhancements
 
+- docs(nix): update README with pinning v1.0.0 by hash example
+
 #### Build, CI, internal
 
 ### Bug Fixes
