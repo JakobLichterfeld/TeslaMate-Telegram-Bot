@@ -11,6 +11,7 @@
 #### Build, CI, internal
 
 - build(deps): bump actions/checkout from 6.0.1 to 6.0.2 (#101)
+- build(deps): bump docker/login-action from 3.6.0 to 3.7.0 (#102)
 
 ### Bug Fixes
 
