@@ -10,6 +10,8 @@
 
 #### Build, CI, internal
 
+- build(deps): bump actions/checkout from 6.0.1 to 6.0.2 (#101)
+
 ### Bug Fixes
 
 ## [1.0.0] - 2026-01-14
