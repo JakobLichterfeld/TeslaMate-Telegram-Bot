@@ -14,6 +14,7 @@
 - build(deps): bump docker/login-action from 3.6.0 to 3.7.0 (#102)
 - build(deps): bump nix-community/cache-nix-action from 7.0.0 to 7.0.2 (#103)
 - build(deps): bump actions/setup-python from 6.1.0 to 6.2.0 (#104)
+- build(deps): bump crate-ci/typos from 1.42.0 to 1.42.3 (#105)
 
 ### Bug Fixes
 
