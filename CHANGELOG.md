@@ -15,6 +15,10 @@
 - build(deps): bump nix-community/cache-nix-action from 7.0.0 to 7.0.2 (#103)
 - build(deps): bump actions/setup-python from 6.1.0 to 6.2.0 (#104)
 - build(deps): bump crate-ci/typos from 1.42.0 to 1.42.3 (#105)
+- build(deps): bump actions/upload-artifact from 6.0.0 to 7.0.0 (#106)
+- build(deps): bump crate-ci/typos from 1.42.3 to 1.44.0 (#107)
+- build(deps): bump actions/download-artifact from 7.0.0 to 8.0.0 (#108)
+- build(deps): bump docker/build-push-action from 6.18.0 to 6.19.2 (#109)
 
 ### Bug Fixes
 
