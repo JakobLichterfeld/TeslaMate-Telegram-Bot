@@ -19,6 +19,11 @@
 - build(deps): bump crate-ci/typos from 1.42.3 to 1.44.0 (#107)
 - build(deps): bump actions/download-artifact from 7.0.0 to 8.0.0 (#108)
 - build(deps): bump docker/build-push-action from 6.18.0 to 6.19.2 (#109)
+- build(deps): bump docker/build-push-action from 6.19.2 to 7.0.0 (#110)
+- build(deps): bump docker/login-action from 3.7.0 to 4.0.0 (#111)
+- build(deps): bump docker/setup-qemu-action from 3.7.0 to 4.0.0 (#112)
+- build(deps): bump docker/setup-buildx-action from 3.12.0 to 4.0.0 (#113)
+- build(deps): bump docker/metadata-action from 5.10.0 to 6.0.0 (#114)
 
 ### Bug Fixes
 
