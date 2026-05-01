@@ -20,5 +20,3 @@ paho-mqtt==2.1.0
     # via teslamate-telegram-bot (pyproject.toml)
 python-telegram-bot==22.5
     # via teslamate-telegram-bot (pyproject.toml)
-typing-extensions==4.15.0
-    # via anyio
