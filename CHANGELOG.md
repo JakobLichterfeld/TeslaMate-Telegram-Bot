@@ -29,8 +29,6 @@
 - build(deps): bump crate-ci/typos from 1.44.0 to 1.46.0 (#117)
 - build(deps): bump dorny/paths-filter from 3.0.2 to 4.0.1 (#118)
 - build(deps): bump docker/build-push-action from 7.0.0 to 7.1.0 (#119)
-- build(deps-dev): update setuptools-scm requirement from >=9 to >=10.0.5 (#120)
-- build(deps-dev): update setuptools requirement from >=80 to >=82.0.1 (#121)
 - chore(uv): remove unused typing-extensions dependency
 - build(deps): update flake.lock
 
