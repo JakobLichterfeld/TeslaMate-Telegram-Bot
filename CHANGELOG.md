@@ -24,6 +24,13 @@
 - build(deps): bump docker/setup-qemu-action from 3.7.0 to 4.0.0 (#112)
 - build(deps): bump docker/setup-buildx-action from 3.12.0 to 4.0.0 (#113)
 - build(deps): bump docker/metadata-action from 5.10.0 to 6.0.0 (#114)
+- - build(deps): bump actions/download-artifact from 8.0.0 to 8.0.1 (#115)
+- build(deps): bump actions/upload-artifact from 7.0.0 to 7.0.1 (#116)
+- build(deps): bump crate-ci/typos from 1.44.0 to 1.46.0 (#117)
+- build(deps): bump dorny/paths-filter from 3.0.2 to 4.0.1 (#118)
+- build(deps): bump docker/build-push-action from 7.0.0 to 7.1.0 (#119)
+- build(deps-dev): update setuptools-scm requirement from >=9 to >=10.0.5 (#120)
+- build(deps-dev): update setuptools requirement from >=80 to >=82.0.1 (#121)
 
 ### Bug Fixes
 
