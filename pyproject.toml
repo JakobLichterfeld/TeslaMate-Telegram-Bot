@@ -22,7 +22,7 @@ changelog = "https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/blob/mai
 teslamate-telegram-bot = "teslamate_telegram_bot:main_sync"
 
 [build-system]
-requires = ["setuptools>=80", "setuptools-scm>=10.0.5"]
+requires = ["setuptools>=82.0.1", "setuptools-scm>=10.0.5"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
