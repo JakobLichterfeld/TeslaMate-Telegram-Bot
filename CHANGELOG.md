@@ -31,6 +31,7 @@
 - build(deps): bump docker/build-push-action from 7.0.0 to 7.1.0 (#119)
 - chore(uv): remove unused typing-extensions dependency
 - build(deps): update flake.lock
+- build(deps): bump python-telegram-bot from 22.5 to 22.7
 
 ### Bug Fixes
 

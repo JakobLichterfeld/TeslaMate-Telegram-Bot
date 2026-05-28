@@ -9,7 +9,9 @@ certifi==2026.1.4
 h11==0.16.0
     # via httpcore
 httpcore==1.0.9
-    # via httpx
+    # via
+    #   httpx
+    #   python-telegram-bot
 httpx==0.28.1
     # via python-telegram-bot
 idna==3.11
@@ -18,5 +20,5 @@ idna==3.11
     #   httpx
 paho-mqtt==2.1.0
     # via teslamate-telegram-bot (pyproject.toml)
-python-telegram-bot==22.5
+python-telegram-bot==22.7
     # via teslamate-telegram-bot (pyproject.toml)

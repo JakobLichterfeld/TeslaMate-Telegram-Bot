@@ -11,7 +11,7 @@ keywords = ["python", "mqtt", "telegram-bot", "tesla", "mqtt-client", "paho-mqtt
 requires-python = ">=3.13"
 dependencies = [
     "paho-mqtt==2.1.0",
-    "python-telegram-bot==22.5",
+    "python-telegram-bot==22.7",
 ]
 
 [project.urls]
