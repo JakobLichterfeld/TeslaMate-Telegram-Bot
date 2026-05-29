@@ -121,7 +121,7 @@ teslamate-telegram-bot.url = "github:JakobLichterfeld/TeslaMate-Telegram-Bot";
 If you would like to pin to a specific version, you can do so for example like this:
 
 ```nix
-teslamate-telegram-bot.url = "github:JakobLichterfeld/TeslaMate-Telegram-Bot?rev=559c0012bd609bec4bb11b0574d88a9bcb39c529"; # v1.0.0
+teslamate-telegram-bot.url = "github:JakobLichterfeld/TeslaMate-Telegram-Bot?rev=da8ef53fa71080c395383c416571da8e52db2da3"; # v1.0.1
 ```
 
 To enable the TeslaMate Telegram Bot service, your config could look like this (for all option, see module.nix):
