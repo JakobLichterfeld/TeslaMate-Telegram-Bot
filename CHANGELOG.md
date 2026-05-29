@@ -24,7 +24,7 @@
 - build(deps): bump docker/setup-qemu-action from 3.7.0 to 4.0.0 (#112)
 - build(deps): bump docker/setup-buildx-action from 3.12.0 to 4.0.0 (#113)
 - build(deps): bump docker/metadata-action from 5.10.0 to 6.0.0 (#114)
-- - build(deps): bump actions/download-artifact from 8.0.0 to 8.0.1 (#115)
+- build(deps): bump actions/download-artifact from 8.0.0 to 8.0.1 (#115)
 - build(deps): bump actions/upload-artifact from 7.0.0 to 7.0.1 (#116)
 - build(deps): bump crate-ci/typos from 1.44.0 to 1.46.0 (#117)
 - build(deps): bump dorny/paths-filter from 3.0.2 to 4.0.1 (#118)
@@ -32,6 +32,7 @@
 - chore(uv): remove unused typing-extensions dependency
 - build(deps): update flake.lock
 - build(deps): bump python-telegram-bot from 22.5 to 22.7
+- feat(nix): update NixOS version to 26.05
 
 ### Bug Fixes
 
