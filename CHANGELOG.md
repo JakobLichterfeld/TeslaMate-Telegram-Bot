@@ -13,6 +13,7 @@
 - build(deps): bump crate-ci/typos from 1.46.0 to 1.47.0 (#122)
 - build(deps): bump docker/setup-buildx-action from 4.0.0 to 4.1.0 (#123)
 - build(deps): bump docker/setup-qemu-action from 4.0.0 to 4.1.0 (#124)
+- build(deps): bump docker/build-push-action from 7.1.0 to 7.2.0 (#125)
 
 ### Bug Fixes
 
