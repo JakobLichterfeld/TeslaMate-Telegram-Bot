@@ -10,6 +10,8 @@
 
 #### Build, CI, internal
 
+- build(deps): bump crate-ci/typos from 1.46.0 to 1.47.0 (#122)
+
 ### Bug Fixes
 
 ## [1.0.1] - 2026-05-29
