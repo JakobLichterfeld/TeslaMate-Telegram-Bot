@@ -14,6 +14,7 @@
 - build(deps): bump docker/setup-buildx-action from 4.0.0 to 4.1.0 (#123)
 - build(deps): bump docker/setup-qemu-action from 4.0.0 to 4.1.0 (#124)
 - build(deps): bump docker/build-push-action from 7.1.0 to 7.2.0 (#125)
+- build(deps): bump docker/metadata-action from 6.0.0 to 6.1.0 (#126)
 
 ### Bug Fixes
 
