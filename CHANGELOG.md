@@ -21,6 +21,7 @@
 - build(deps): bump crate-ci/typos from 1.47.0 to 1.48.0 (#132)
 - build(deps): bump actions/setup-python from 6.2.0 to 6.3.0 (#133)
 - build(deps): update flake.lock (#135)
+- ci: speed up check_linting by running treefmt in a lean app (#136)
 
 ### Bug Fixes
 

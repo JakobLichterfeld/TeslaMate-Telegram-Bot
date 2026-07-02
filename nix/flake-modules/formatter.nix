@@ -57,5 +57,23 @@
 
         programs.nixpkgs-fmt.enable = true;
       };
+
+      # Lean treefmt entrypoint for CI: `nix run .#lint -- --ci`
+      # (locally just `nix run .#lint`; any extra args are passed to treefmt).
+      #
+      # The default devenv shell pulls in the whole development closure
+      # (python, uv, secretspec, …), which is
+      # several GB and does not fit the cache GC budget, so CI rebuilds it on
+      # every run. Linting only needs the treefmt wrapper (which already bundles
+      # all formatters via absolute store paths).
+      packages.lint = pkgs.writeShellApplication {
+        name = "lint";
+        runtimeInputs = [
+          config.treefmt.build.wrapper
+        ];
+        text = ''
+          exec treefmt "$@"
+        '';
+      };
     };
 }
