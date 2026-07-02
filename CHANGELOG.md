@@ -18,6 +18,7 @@
 - build(deps): bump nixbuild/nix-quick-install-action from 34 to 35 (#129)
 - build(deps): bump actions/checkout from 6.0.2 to 7.0.0 (#130)
 - build(deps): bump docker/login-action from 4.0.0 to 4.2.0 (#131)
+- build(deps): bump crate-ci/typos from 1.47.0 to 1.48.0 (#132)
 
 ### Bug Fixes
 
