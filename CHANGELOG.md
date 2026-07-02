@@ -20,6 +20,7 @@
 - build(deps): bump docker/login-action from 4.0.0 to 4.2.0 (#131)
 - build(deps): bump crate-ci/typos from 1.47.0 to 1.48.0 (#132)
 - build(deps): bump actions/setup-python from 6.2.0 to 6.3.0 (#133)
+- build(deps): update flake.lock (#135)
 
 ### Bug Fixes
 
