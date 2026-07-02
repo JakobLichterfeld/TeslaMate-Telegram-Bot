@@ -16,6 +16,7 @@
 - build(deps): bump docker/build-push-action from 7.1.0 to 7.2.0 (#125)
 - build(deps): bump docker/metadata-action from 6.0.0 to 6.1.0 (#126)
 - build(deps): bump nixbuild/nix-quick-install-action from 34 to 35 (#129)
+- build(deps): bump actions/checkout from 6.0.2 to 7.0.0 (#130)
 
 ### Bug Fixes
 
