@@ -22,6 +22,7 @@
 - build(deps): bump actions/setup-python from 6.2.0 to 6.3.0 (#133)
 - build(deps): update flake.lock (#135)
 - ci: speed up check_linting by running treefmt in a lean app (#136)
+- chore(dependabot): group GitHub Actions updates
 
 ### Bug Fixes
 
