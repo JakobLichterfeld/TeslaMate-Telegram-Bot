@@ -36,6 +36,7 @@
 - style(nix): format Nix code with nixfmt instead of the archived nixpkgs-fmt
 - style(dependabot): fix formatting in dependabot configuration
 - ci(treefmt): stop treefmt.toml from drifting out of sync with the flake
+- refactor: prepare for ruff 0.16 default rule set
 
 ### Bug Fixes
 

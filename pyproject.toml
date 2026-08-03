@@ -27,3 +27,23 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
+
+[tool.ruff.lint]
+# Selected explicitly: relying on ruff's defaults means an upstream release can
+# change which rules apply, as ruff 0.16 did. Line length (E5) stays off, it is
+# the formatter's job.
+select = [
+    "E4",  # pycodestyle: imports
+    "E7",  # pycodestyle: statements
+    "E9",  # pycodestyle: runtime errors
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade, kept in sync with requires-python
+    "B",   # flake8-bugbear
+    "ARG", # flake8-unused-arguments
+    "LOG", # flake8-logging
+    "G",   # flake8-logging-format
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific rules
+    "PL",  # pylint
+]
