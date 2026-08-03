@@ -4,6 +4,8 @@
 
 ### New Features
 
+- legal: relicense under AGPLv3
+
 ### Enhancements
 
 - docs(nix): update README with pinning v1.0.1 by hash example
