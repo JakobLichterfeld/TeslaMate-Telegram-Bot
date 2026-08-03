@@ -35,6 +35,7 @@
 - fix(ci): correct output reference in check_paths workflow
 - style(nix): format Nix code with nixfmt instead of the archived nixpkgs-fmt
 - style(dependabot): fix formatting in dependabot configuration
+- ci(treefmt): stop treefmt.toml from drifting out of sync with the flake
 
 ### Bug Fixes
 
