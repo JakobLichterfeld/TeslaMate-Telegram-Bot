@@ -37,6 +37,7 @@
 - style(dependabot): fix formatting in dependabot configuration
 - ci(treefmt): stop treefmt.toml from drifting out of sync with the flake
 - refactor: prepare for ruff 0.16 default rule set
+- build(nix): provide pylint in the devenv shell
 
 ### Bug Fixes
 

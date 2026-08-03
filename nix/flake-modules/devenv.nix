@@ -13,6 +13,15 @@
     let
       teslamate-telegram-bot = self.packages.${pkgs.stdenv.hostPlatform.system}.default;
       python = pkgs.python3;
+
+      # One environment for the interpreter, the project and the linters that
+      # have to import it. pylint resolves the project's imports only if it
+      # lives in the same environment; from a separate derivation it reports
+      # every third-party import as E0401.
+      pythonEnv = python.withPackages (ps: [
+        teslamate-telegram-bot
+        ps.pylint
+      ]);
     in
     {
       devenv.shells.default = {
@@ -24,11 +33,10 @@
           pkgs.lib.mkIf (devenvRootFileContent != "") devenvRootFileContent;
         packages =
           [
-            # The project's own package, providing the main executable and its runtime dependencies.
-            teslamate-telegram-bot
-
-            # The Python interpreter itself, for IDEs and manual script execution.
-            python
+            # The Python interpreter, the project's own package (providing the
+            # main executable and its runtime dependencies) and pylint, which
+            # is not part of treefmt because it does not format.
+            pythonEnv
 
             pkgs.uv
             pkgs.secretspec
