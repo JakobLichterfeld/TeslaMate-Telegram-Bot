@@ -30,6 +30,7 @@
 - build(deps): bump docker/setup-buildx-action from 4.1.0 to 4.2.0 (#141)
 - build(deps): bump the actions-deps group across 1 directory with 3 updates (#145)
 - ci: replace quick lint job with an install check
+- fix(ci): correct output reference in check_paths workflow
 
 ### Bug Fixes
 
