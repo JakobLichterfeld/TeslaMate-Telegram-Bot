@@ -35,9 +35,17 @@ jobs:
     if: needs.check_paths.outputs.githubfolder != 'true' || github.event_name == 'schedule'
     uses: ./.github/workflows/ensure_linting.yml
 
+  python_pylint:
+    needs:
+      - check_paths
+      - spell_check
+      - ensure_linting
+    uses: ./.github/workflows/python_pylint.yml
+
   python_install_check:
     needs:
       - check_paths
       - spell_check
       - ensure_linting
+      - python_pylint
     uses: ./.github/workflows/python_install_check.yml
