@@ -54,8 +54,6 @@
 
         programs.ruff-format.enable = true;
         programs.ruff-check.enable = true;
-
-        programs.nixpkgs-fmt.enable = true;
       };
 
       # Lean treefmt entrypoint for CI: `nix run .#lint -- --ci`

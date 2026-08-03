@@ -33,6 +33,7 @@
 - build(deps): bump the actions-deps group across 1 directory with 3 updates (#145)
 - ci: replace quick lint job with an install check
 - fix(ci): correct output reference in check_paths workflow
+- style(nix): format Nix code with nixfmt instead of the archived nixpkgs-fmt
 
 ### Bug Fixes
 
