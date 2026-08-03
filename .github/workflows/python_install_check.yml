@@ -1,4 +1,4 @@
-name: Python Linting (quick)
+name: Python Install Check
 
 on:
   workflow_call:
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  lint:
+  install:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
@@ -16,13 +16,9 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.14"
-      - name: Install dependencies
+      - name: Install the package
+        # Exercises the build backend, so the pinned build-system requirements
+        # in pyproject.toml are validated on pull requests.
         run: |
           python -m pip install --upgrade pip uv
           uv pip install . --system
-      - name: Lint with Ruff
-        run: |
-          uvx ruff check
-      - name: Format with Ruff
-        run: |
-          uvx ruff format

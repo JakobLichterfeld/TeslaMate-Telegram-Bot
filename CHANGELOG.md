@@ -29,6 +29,7 @@
 - build(deps): bump docker/metadata-action from 6.1.0 to 6.2.0 (#140)
 - build(deps): bump docker/setup-buildx-action from 4.1.0 to 4.2.0 (#141)
 - build(deps): bump the actions-deps group across 1 directory with 3 updates (#145)
+- ci: replace quick lint job with an install check
 
 ### Bug Fixes
 
