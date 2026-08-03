@@ -23,6 +23,12 @@
 - build(deps): update flake.lock (#135)
 - ci: speed up check_linting by running treefmt in a lean app (#136)
 - chore(dependabot): group GitHub Actions updates
+- build(deps): bump actions/setup-python from 6.3.0 to 7.0.0 (#137)
+- build(deps): bump dorny/paths-filter from 4.0.1 to 4.0.2 (#138)
+- build(deps): bump docker/build-push-action from 7.2.0 to 7.3.0 (#139)
+- build(deps): bump docker/metadata-action from 6.1.0 to 6.2.0 (#140)
+- build(deps): bump docker/setup-buildx-action from 4.1.0 to 4.2.0 (#141)
+- build(deps): bump the actions-deps group across 1 directory with 3 updates (#145)
 
 ### Bug Fixes
 
