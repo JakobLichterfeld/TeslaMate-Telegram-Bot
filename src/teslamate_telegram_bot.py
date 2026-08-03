@@ -260,8 +260,10 @@ async def main():
             "Sleeping for 2 minutes before exiting or restarting, depending on your restart policy."
         )
         await asyncio.sleep(120)
+        return
 
-    # clean exit
+    # clean exit, reached only when the setup above succeeded: client, bot and
+    # chat_id are bound on this path only.
     logger.info("Disconnecting from MQTT broker.")
     client.disconnect()
     logger.info("Disconnected from MQTT broker.")
