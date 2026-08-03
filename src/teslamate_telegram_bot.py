@@ -234,6 +234,10 @@ async def send_telegram_message_to_chat_id(bot, chat_id, message_text_to_send):
 async def main():
     """Main function"""
     logger.info("Starting the Teslamate Telegram Bot.")
+    # Bound up front so the cleanup below can tell what actually got set up.
+    client = None
+    bot = None
+    chat_id = None
     try:
         client = setup_mqtt_client()
         bot, chat_id = setup_telegram_bot()
@@ -260,18 +264,20 @@ async def main():
             "Sleeping for 2 minutes before exiting or restarting, depending on your restart policy."
         )
         await asyncio.sleep(120)
-        return
-
-    # clean exit, reached only when the setup above succeeded: client, bot and
-    # chat_id are bound on this path only.
-    logger.info("Disconnecting from MQTT broker.")
-    client.disconnect()
-    logger.info("Disconnected from MQTT broker.")
-    client.loop_stop()
-    logger.info("Exiting the Teslamate Telegram bot.")
-    stop_message = "<b>Teslamate Telegram Bot stopped. 🛑</b>\n "
-    await send_telegram_message_to_chat_id(bot, chat_id, stop_message)
-    await bot.close()
+    finally:
+        # Clean exit for whatever was set up: a failure in setup_telegram_bot
+        # leaves an already connected MQTT client behind, and it still has to
+        # be disconnected.
+        if client is not None:
+            logger.info("Disconnecting from MQTT broker.")
+            client.disconnect()
+            logger.info("Disconnected from MQTT broker.")
+            client.loop_stop()
+        logger.info("Exiting the Teslamate Telegram bot.")
+        if bot is not None:
+            stop_message = "<b>Teslamate Telegram Bot stopped. 🛑</b>\n "
+            await send_telegram_message_to_chat_id(bot, chat_id, stop_message)
+            await bot.close()
 
 
 # Entry point

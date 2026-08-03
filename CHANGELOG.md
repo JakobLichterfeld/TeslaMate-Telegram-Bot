@@ -43,6 +43,7 @@
 ### Bug Fixes
 
 - fix: exit cleanly when setup fails
+- fix: disconnect the MQTT client when the telegram setup fails
 
 ## [1.0.1] - 2026-05-29
 
