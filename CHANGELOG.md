@@ -43,6 +43,7 @@
 - build(nix): provide pylint in the devenv shell
 - ci: run pylint from the version pinned in uv.lock
 - build(deps-dev): update setuptools requirement from >=80 to >=83.0.0 (#142)
+- build(deps-dev): update setuptools-scm requirement from >=9 to >=10.2.1 (#143)
 
 ### Bug Fixes
 
