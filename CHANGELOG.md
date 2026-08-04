@@ -45,6 +45,7 @@
 - ci: run pylint from the version pinned in uv.lock
 - build(dependabot): stop raising the build-system floors
 - build(uv): make image builds reproducible
+- ci: build the Nix package on every commit
 
 ### Bug Fixes
 
