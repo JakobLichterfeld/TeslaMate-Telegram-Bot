@@ -9,6 +9,7 @@ import sys
 import paho.mqtt.client as mqtt
 from telegram import Bot
 from telegram.constants import ParseMode
+from telegram.error import TelegramError
 
 ##############################################################################
 
@@ -283,8 +284,15 @@ async def main():
         logger.info("Exiting the Teslamate Telegram bot.")
         if bot is not None:
             stop_message = "<b>Teslamate Telegram Bot stopped. 🛑</b>\n "
-            await send_telegram_message_to_chat_id(bot, chat_id, stop_message)
-            await bot.close()
+            try:
+                await send_telegram_message_to_chat_id(bot, chat_id, stop_message)
+                await bot.close()
+            except TelegramError as telegram_error:
+                # Telegram being unreachable is what brings the bot down in the
+                # first place. Saying goodbye over the same channel then fails
+                # too, and an exception raised in here would replace the one
+                # that caused the shutdown, hiding the actual cause.
+                logger.error("Could not shut down the Telegram bot: %s", telegram_error)
 
 
 # Entry point

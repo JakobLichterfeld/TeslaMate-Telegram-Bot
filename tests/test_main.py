@@ -9,6 +9,7 @@ import asyncio
 import types
 
 import pytest
+from telegram.error import NetworkError
 
 
 class FakeClient:
@@ -128,6 +129,41 @@ def test_disconnects_the_client_when_the_telegram_setup_fails(
 
     assert calls == ["disconnect", "loop_stop"]
     assert sent_messages == []
+
+
+@pytest.mark.usefixtures("instant_sleep", "running_bot")
+def test_a_failing_goodbye_does_not_hide_the_original_error(module, monkeypatch, calls):
+    """Telegram being down is what ends the bot, so the goodbye fails too."""
+
+    async def unreachable(_bot, _chat_id, text):
+        # Distinct messages: the assertion below pins down which of the two
+        # failures leaves main(), the original one or the one from the cleanup.
+        raise NetworkError("greeting failed" if "started" in text else "goodbye failed")
+
+    monkeypatch.setattr(module, "send_telegram_message_to_chat_id", unreachable)
+
+    with pytest.raises(NetworkError, match="greeting failed"):
+        asyncio.run(module.main())
+
+    # The MQTT side was still shut down before the exception left main().
+    assert calls == ["disconnect", "loop_stop"]
+
+
+@pytest.mark.usefixtures("instant_sleep", "running_bot")
+def test_reports_a_failing_goodbye_after_a_regular_run(module, monkeypatch, calls):
+    sent = []
+
+    async def fail_on_goodbye(_bot, _chat_id, text):
+        sent.append(text)
+        if "stopped" in text:
+            raise NetworkError("Telegram is unreachable")
+
+    monkeypatch.setattr(module, "send_telegram_message_to_chat_id", fail_on_goodbye)
+
+    asyncio.run(module.main())
+
+    assert len(sent) == 2
+    assert calls == ["loop_start", "disconnect", "loop_stop"]
 
 
 def test_the_entry_point_runs_the_bot(module, monkeypatch):
