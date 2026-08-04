@@ -5,6 +5,7 @@
 ### New Features
 
 - legal: relicense under AGPLv3
+- legal: declare AGPLv3 in the package metadata
 
 ### Enhancements
 

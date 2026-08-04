@@ -46,7 +46,7 @@
           description = "A Telegram bot which sends a message if an update for your Tesla is available (use TeslaMate MQTT).";
           homepage = "https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot";
           changelog = "https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/blob/main/CHANGELOG.md";
-          license = licenses.mit;
+          license = licenses.agpl3Plus;
           maintainers = [ "JakobLichterfeld" ];
         };
       };

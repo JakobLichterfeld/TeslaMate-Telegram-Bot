@@ -1,5 +1,6 @@
 # TeslaMate Telegram Bot
 
+[![License](https://img.shields.io/badge/license-AGPL--3.0-green.svg)](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/blob/main/LICENSE)
 [![DevOps](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/actions/workflows/devops.yml/badge.svg)](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/actions/workflows/devops.yml)
 [![pylint](https://img.shields.io/badge/pylint-10.00%2F10-brightgreen)](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/actions/workflows/devops.yml)
 [![coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot/actions/workflows/devops.yml)
