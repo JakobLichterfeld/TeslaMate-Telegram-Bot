@@ -4,6 +4,13 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    # The build-system entries in pyproject.toml are minimum requirements, not
+    # pins: the Nix package builds with whatever setuptools nixpkgs ships, and
+    # raising the floor above that version breaks `nix build .#default` while
+    # gaining nothing. Raise these by hand together with the flake inputs.
+    ignore:
+      - dependency-name: "setuptools"
+      - dependency-name: "setuptools-scm"
 
   - package-ecosystem: "docker"
     directory: "/"
