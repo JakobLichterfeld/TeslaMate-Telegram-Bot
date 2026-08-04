@@ -19,8 +19,8 @@ jobs:
       - name: Run pytest
         # The version comes from uv.lock, which is generated from
         # pyproject.toml and is the single place any version is pinned - the
-        # devenv shell runs the suite through the very same file. pytest picks
-        # up the package via the pythonpath setting, so no install is needed.
-        # --cov-fail-under backs the coverage badge in the README: the number
-        # cannot drop without CI going red.
-        run: uv run --no-project --with-requirements uv.lock pytest --cov-fail-under=100
+        # devenv shell runs the suite through the very same file. --locked
+        # fails instead of silently relocking, and --cov-fail-under backs the
+        # coverage badge in the README: the number cannot drop without CI
+        # going red.
+        run: uv run --locked --group test pytest --cov-fail-under=100

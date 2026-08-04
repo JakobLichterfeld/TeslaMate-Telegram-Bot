@@ -43,6 +43,7 @@
 - build(nix): provide pylint in the devenv shell
 - ci: run pylint from the version pinned in uv.lock
 - build(dependabot): stop raising the build-system floors
+- build(uv): make image builds reproducible
 
 ### Bug Fixes
 

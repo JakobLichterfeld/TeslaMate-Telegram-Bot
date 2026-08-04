@@ -14,8 +14,10 @@ dependencies = [
     "python-telegram-bot==22.7",
 ]
 
-[project.optional-dependencies]
-# Declared here, pinned in uv.lock, which is generated from this file.
+[dependency-groups]
+# Development only: groups are not part of the distribution and stay out of the
+# container image, which installs the project without them. Declared here,
+# pinned in uv.lock, which is generated from this file.
 lint = ["pylint"]
 test = ["pytest", "pytest-cov"]
 

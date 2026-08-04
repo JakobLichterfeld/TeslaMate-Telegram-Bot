@@ -19,6 +19,7 @@ jobs:
       - name: Run pylint
         # The version comes from uv.lock, which is generated from
         # pyproject.toml and is the single place any version is pinned - the
-        # devenv shell runs pylint through the very same file. --fail-under
-        # keeps the score badge in the README from going stale unnoticed.
-        run: uv run --no-project --with-requirements uv.lock pylint --fail-under=10 --recursive=y src
+        # devenv shell runs pylint through the very same file. --locked fails
+        # instead of silently relocking, and --fail-under keeps the score badge
+        # in the README from going stale unnoticed.
+        run: uv run --locked --group lint pylint --fail-under=10 --recursive=y src

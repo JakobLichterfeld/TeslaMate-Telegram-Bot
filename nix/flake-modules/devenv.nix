@@ -45,13 +45,13 @@
         # Runs the pylint pinned in uv.lock over the project, the same way CI
         # does.
         scripts.pylint.exec = ''
-          exec uv run --no-project --with-requirements uv.lock pylint --recursive=y src
+          exec uv run --locked --group lint pylint --recursive=y src
         '';
         # Runs the test suite at the pytest pinned in uv.lock, the same way CI
         # does. Arguments are passed through; without them pytest uses the
         # testpaths from pyproject.toml, so there is no target to conflict with.
         scripts.pytest.exec = ''
-          exec uv run --no-project --with-requirements uv.lock pytest "$@"
+          exec uv run --locked --group test pytest "$@"
         '';
         enterShell = ''
           export SECRETSPEC_PROVIDER=dotenv:.env
