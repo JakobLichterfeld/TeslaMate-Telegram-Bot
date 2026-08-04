@@ -43,9 +43,13 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# Global state
 class State:
-    """A class to hold the global state of the application."""
+    """A class to hold the state of the application.
+
+    Created in main() and handed to the MQTT client as its user data, so the
+    callbacks receive it as an argument instead of reaching for a module
+    global.
+    """
 
     def __init__(self):
         self.update_available = False  # Flag to indicate if an update is available
@@ -53,10 +57,6 @@ class State:
             False  # Flag to indicate if the message has been sent
         )
         self.update_version = "unknown"  # The version of the update
-
-
-# Global state
-state = State()
 
 
 def get_env_variable(var_name, default_value=None):
@@ -130,8 +130,10 @@ def on_connect(client, userdata, flags, reason_code, properties=None):  # noqa: 
 def on_message(client, userdata, msg):  # noqa: ARG001  # pylint: disable=unused-argument
     """The callback for when a PUBLISH message is received from the server.
 
-    Signature is fixed by paho-mqtt; not every argument is used.
+    Signature is fixed by paho-mqtt; not every argument is used. userdata is
+    the State instance handed to the client in setup_mqtt_client.
     """
+    state = userdata
     logger.debug("Received message: %s %s", msg.topic, msg.payload.decode())
 
     if msg.topic == TESLAMATE_MQTT_TOPIC_UPDATE_VERSION:
@@ -150,10 +152,14 @@ def on_message(client, userdata, msg):  # noqa: ARG001  # pylint: disable=unused
             state.update_available_message_sent = False  # Reset the message sent flag
 
 
-def setup_mqtt_client():
-    """Setup the MQTT client"""
+def setup_mqtt_client(state):
+    """Setup the MQTT client
+
+    The state is registered as the client's user data, so paho hands it to the
+    callbacks on every message.
+    """
     logger.info("Setting up the MQTT client...")
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, userdata=state)
     client.on_connect = on_connect
     client.on_message = on_message
 
@@ -193,7 +199,7 @@ def setup_telegram_bot():
     return bot, chat_id
 
 
-async def check_state_and_send_messages(bot, chat_id):
+async def check_state_and_send_messages(bot, chat_id, state):
     """Check the state and send messages if necessary"""
     logger.debug("Checking state and sending messages...")
 
@@ -234,12 +240,13 @@ async def send_telegram_message_to_chat_id(bot, chat_id, message_text_to_send):
 async def main():
     """Main function"""
     logger.info("Starting the Teslamate Telegram Bot.")
+    state = State()
     # Bound up front so the cleanup below can tell what actually got set up.
     client = None
     bot = None
     chat_id = None
     try:
-        client = setup_mqtt_client()
+        client = setup_mqtt_client(state)
         bot, chat_id = setup_telegram_bot()
         start_message = (
             "<b>"
@@ -252,7 +259,7 @@ async def main():
         client.loop_start()
         try:
             while True:
-                await check_state_and_send_messages(bot, chat_id)
+                await check_state_and_send_messages(bot, chat_id, state)
 
                 logger.debug("Sleeping for 30 second.")
                 await asyncio.sleep(30)

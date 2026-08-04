@@ -9,6 +9,7 @@
 ### Enhancements
 
 - docs(nix): update README with pinning v1.0.1 by hash example
+- refactor: pass the application state instead of sharing a module global
 
 #### Build, CI, internal
 
