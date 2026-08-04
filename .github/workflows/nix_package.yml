@@ -1,0 +1,37 @@
+name: Nix package
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Nix
+        uses: nixbuild/nix-quick-install-action@9f63be77f412a248c9d9a65a4c82cf066cdf8f0c # v35
+
+      - name: Nix binary cache
+        # Deliberately a separate cache from ensure_linting: the two closures
+        # share almost nothing, and a common budget would let them evict each
+        # other on every run.
+        uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
+        with:
+          primary-key: nix-package-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock', 'pyproject.toml') }}
+          restore-prefixes-first-match: nix-package-${{ runner.os }}-
+          gc-max-store-size-linux: 2147483648
+          purge: true
+          purge-prefixes: nix-package-${{ runner.os }}-
+          purge-created: 0
+          purge-primary-key: never
+
+      - name: Build the package
+        # The build-system entries in pyproject.toml are minimum requirements
+        # that must stay satisfiable with the setuptools nixpkgs ships. Raising
+        # them above that version breaks this build and nothing else, so
+        # without this job the breakage only surfaces for NixOS users.
+        run: nix build .#default --no-link --print-build-logs

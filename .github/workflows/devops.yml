@@ -40,6 +40,7 @@ jobs:
       - check_paths
       - spell_check
       - ensure_linting
+    if: needs.check_paths.outputs.githubfolder != 'true' || github.event_name == 'schedule'
     uses: ./.github/workflows/python_pylint.yml
 
   python_tests:
@@ -48,6 +49,7 @@ jobs:
       - spell_check
       - ensure_linting
       - python_pylint
+    if: needs.check_paths.outputs.githubfolder != 'true' || github.event_name == 'schedule'
     uses: ./.github/workflows/python_tests.yml
 
   python_install_check:
@@ -57,4 +59,16 @@ jobs:
       - ensure_linting
       - python_pylint
       - python_tests
+    if: needs.check_paths.outputs.githubfolder != 'true' || github.event_name == 'schedule'
     uses: ./.github/workflows/python_install_check.yml
+
+  nix_package:
+    needs:
+      - check_paths
+      - spell_check
+      - ensure_linting
+      - python_pylint
+      - python_tests
+      - python_install_check
+    if: needs.check_paths.outputs.githubfolder != 'true' || github.event_name == 'schedule'
+    uses: ./.github/workflows/nix_package.yml
