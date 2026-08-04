@@ -6,6 +6,7 @@ setup had raised.
 """
 
 import asyncio
+import types
 
 import pytest
 
@@ -51,6 +52,26 @@ def fixture_running_bot(module, monkeypatch, calls):
         raise KeyboardInterrupt
 
     monkeypatch.setattr(module, "check_state_and_send_messages", interrupt)
+
+
+@pytest.mark.usefixtures("instant_sleep")
+def test_polls_the_state_in_a_loop(module, monkeypatch, sent_messages, calls):
+    monkeypatch.setattr(module, "setup_mqtt_client", lambda _state: FakeClient(calls))
+    monkeypatch.setattr(module, "setup_telegram_bot", lambda: (FakeBot(calls), 42))
+    checks = []
+
+    async def check(_bot, _chat_id, _state):
+        checks.append(1)
+        if len(checks) == 2:
+            raise KeyboardInterrupt
+
+    monkeypatch.setattr(module, "check_state_and_send_messages", check)
+
+    asyncio.run(module.main())
+
+    assert len(checks) == 2
+    assert calls == ["loop_start", "disconnect", "loop_stop", "bot.close"]
+    assert len(sent_messages) == 2
 
 
 @pytest.mark.usefixtures("instant_sleep", "running_bot")
@@ -107,3 +128,17 @@ def test_disconnects_the_client_when_the_telegram_setup_fails(
 
     assert calls == ["disconnect", "loop_stop"]
     assert sent_messages == []
+
+
+def test_the_entry_point_runs_the_bot(module, monkeypatch):
+    started = []
+
+    def run(coroutine):
+        started.append(coroutine.cr_code.co_name)
+        coroutine.close()
+
+    monkeypatch.setattr(module, "asyncio", types.SimpleNamespace(run=run))
+
+    module.main_sync()
+
+    assert started == ["main"]

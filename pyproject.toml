@@ -17,7 +17,7 @@ dependencies = [
 [project.optional-dependencies]
 # Declared here, pinned in uv.lock, which is generated from this file.
 lint = ["pylint"]
-test = ["pytest"]
+test = ["pytest", "pytest-cov"]
 
 [project.urls]
 repository = "https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot"
@@ -38,6 +38,16 @@ package-dir = {"" = "src"}
 # suite runs the same way locally and in CI.
 pythonpath = ["src"]
 testpaths = ["tests"]
+# Coverage is reported on every run, locally and in CI, so the number in the
+# README badge is never a surprise. The threshold lives in the CI call: a
+# filtered local run must not fail just because it covers less.
+addopts = ["--cov=teslamate_telegram_bot", "--cov-report=term-missing"]
+
+[tool.coverage.report]
+exclude_also = [
+    # Runs only when the module is executed as a script.
+    'if __name__ == "__main__":',
+]
 
 [tool.ruff.lint]
 # Selected explicitly: relying on ruff's defaults means an upstream release can

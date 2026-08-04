@@ -21,4 +21,6 @@ jobs:
         # pyproject.toml and is the single place any version is pinned - the
         # devenv shell runs the suite through the very same file. pytest picks
         # up the package via the pythonpath setting, so no install is needed.
-        run: uv run --no-project --with-requirements uv.lock pytest
+        # --cov-fail-under backs the coverage badge in the README: the number
+        # cannot drop without CI going red.
+        run: uv run --no-project --with-requirements uv.lock pytest --cov-fail-under=100
