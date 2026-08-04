@@ -52,6 +52,7 @@
 - fix: exit cleanly when setup fails
 - fix: disconnect the MQTT client when the telegram setup fails
 - fix: keep a failing goodbye from hiding why the bot stopped
+- fix: release the bot's resources instead of calling the close API
 
 ## [1.0.1] - 2026-05-29
 

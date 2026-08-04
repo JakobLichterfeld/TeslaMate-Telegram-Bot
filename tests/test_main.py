@@ -34,8 +34,8 @@ class FakeBot:
     def __init__(self, calls):
         self.calls = calls
 
-    async def close(self):
-        self.calls.append("bot.close")
+    async def shutdown(self):
+        self.calls.append("bot.shutdown")
 
 
 @pytest.fixture(name="calls")
@@ -71,7 +71,7 @@ def test_polls_the_state_in_a_loop(module, monkeypatch, sent_messages, calls):
     asyncio.run(module.main())
 
     assert len(checks) == 2
-    assert calls == ["loop_start", "disconnect", "loop_stop", "bot.close"]
+    assert calls == ["loop_start", "disconnect", "loop_stop", "bot.shutdown"]
     assert len(sent_messages) == 2
 
 
@@ -79,7 +79,7 @@ def test_polls_the_state_in_a_loop(module, monkeypatch, sent_messages, calls):
 def test_shuts_down_in_order(module, sent_messages, calls):
     asyncio.run(module.main())
 
-    assert calls == ["loop_start", "disconnect", "loop_stop", "bot.close"]
+    assert calls == ["loop_start", "disconnect", "loop_stop", "bot.shutdown"]
     assert len(sent_messages) == 2
     assert "started" in sent_messages[0][1]
     assert "stopped" in sent_messages[1][1]
