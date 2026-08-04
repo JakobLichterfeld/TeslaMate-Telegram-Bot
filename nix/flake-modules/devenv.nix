@@ -47,6 +47,12 @@
         scripts.pylint.exec = ''
           exec uv run --no-project --with-requirements uv.lock pylint --recursive=y src
         '';
+        # Runs the test suite at the pytest pinned in uv.lock, the same way CI
+        # does. Arguments are passed through; without them pytest uses the
+        # testpaths from pyproject.toml, so there is no target to conflict with.
+        scripts.pytest.exec = ''
+          exec uv run --no-project --with-requirements uv.lock pytest "$@"
+        '';
         enterShell = ''
           export SECRETSPEC_PROVIDER=dotenv:.env
           echo "To run the teslamate-telegram-bot with secretspec, use:"
@@ -54,6 +60,9 @@
           echo ""
           echo "To run pylint at the version pinned in uv.lock, use:"
           echo "  pylint"
+          echo ""
+          echo "To run the test suite, use:"
+          echo "  pytest"
           echo ""
         '';
       };

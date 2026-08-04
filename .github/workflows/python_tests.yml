@@ -1,0 +1,24 @@
+name: Python tests
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python and uv
+        uses: ./.github/actions/setup-python-uv
+
+      - name: Run pytest
+        # The version comes from uv.lock, which is generated from
+        # pyproject.toml and is the single place any version is pinned - the
+        # devenv shell runs the suite through the very same file. pytest picks
+        # up the package via the pythonpath setting, so no install is needed.
+        run: uv run --no-project --with-requirements uv.lock pytest

@@ -17,6 +17,7 @@ dependencies = [
 [project.optional-dependencies]
 # Declared here, pinned in uv.lock, which is generated from this file.
 lint = ["pylint"]
+test = ["pytest"]
 
 [project.urls]
 repository = "https://github.com/JakobLichterfeld/TeslaMate-Telegram-Bot"
@@ -31,6 +32,12 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
+
+[tool.pytest.ini_options]
+# src layout: make the package importable without installing it first, so the
+# suite runs the same way locally and in CI.
+pythonpath = ["src"]
+testpaths = ["tests"]
 
 [tool.ruff.lint]
 # Selected explicitly: relying on ruff's defaults means an upstream release can
@@ -51,3 +58,8 @@ select = [
     "RUF", # ruff-specific rules
     "PL",  # pylint
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# Expected values in a test are literal on purpose; naming them would hide
+# what the assertion actually checks.
+"tests/**" = ["PLR2004"]

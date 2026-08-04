@@ -42,10 +42,19 @@ jobs:
       - ensure_linting
     uses: ./.github/workflows/python_pylint.yml
 
+  python_tests:
+    needs:
+      - check_paths
+      - spell_check
+      - ensure_linting
+      - python_pylint
+    uses: ./.github/workflows/python_tests.yml
+
   python_install_check:
     needs:
       - check_paths
       - spell_check
       - ensure_linting
       - python_pylint
+      - python_tests
     uses: ./.github/workflows/python_install_check.yml

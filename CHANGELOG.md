@@ -10,6 +10,7 @@
 
 - docs(nix): update README with pinning v1.0.1 by hash example
 - refactor: pass the application state instead of sharing a module global
+- test: cover the startup paths and the notification logic
 
 #### Build, CI, internal
 
