@@ -12,6 +12,8 @@
 
 This is a telegram bot written in Python to notify by Telegram message when a new SW update for your Tesla is available. It uses the MQTT topic which [TeslaMate](https://github.com/adriankumpf/teslamate) offers.
 
+> **Note:** This project is an unofficial community tool and is not affiliated with, endorsed by, or supported by the official TeslaMate project.
+
 ## Screenshots
 
 <p align="center">
