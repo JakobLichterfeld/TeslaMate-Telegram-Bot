@@ -13,6 +13,7 @@
 - refactor: pass the application state instead of sharing a module global
 - test: cover the startup paths and the notification logic
 - test: cover the untested functions and add coverage reporting
+- feat: notify on availability, with the version as optional detail
 
 #### Build, CI, internal
 

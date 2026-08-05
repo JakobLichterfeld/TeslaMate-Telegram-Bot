@@ -6,6 +6,8 @@ import logging
 import os
 import sys
 import threading
+import time
+from collections import namedtuple
 
 import paho.mqtt.client as mqtt
 from telegram import Bot
@@ -22,6 +24,13 @@ MQTT_BROKER_KEEPALIVE = 60
 MQTT_BROKER_USERNAME_DEFAULT = ""
 MQTT_BROKER_PASSWORD_DEFAULT = ""
 MQTT_NAMESPACE_DEFAULT = ""
+
+# How long the loop waits between two checks
+POLL_INTERVAL_SECONDS = 30
+# How long an announced update may stay without a version before it is reported
+# without one. This only bridges the gap between two MQTT messages, so it is
+# much shorter than the poll interval and deliberately a separate figure.
+VERSION_GRACE_PERIOD_SECONDS = 5
 
 # Environment variables
 TELEGRAM_BOT_API_KEY = "TELEGRAM_BOT_API_KEY"
@@ -44,6 +53,10 @@ logging.basicConfig(
 # Module logger, attached to the root handler configured above
 logger = logging.getLogger(__name__)
 
+# What check_state_and_send_messages found to be due: which episode, and the
+# version if one is known by now
+PendingNotification = namedtuple("PendingNotification", ["episode", "version"])
+
 
 class State:
     """A class to hold the state of the application.
@@ -58,22 +71,29 @@ class State:
     says nothing about how the two MQTT topics relate to each other, since
     availability and version arrive as separate messages.
 
-    What has been notified is remembered as the version itself, not as a
-    flag. Sending is awaited, and the state can move on while it is in
-    flight - a flag would then acknowledge whatever is current instead of
-    what actually went out, and the newer update would never be reported.
+    The notification belongs to an availability episode, not to a version:
+    update_available is the signal that matters, the version is optional
+    extra information that must never block the message indefinitely. Every
+    transition from false to true starts a new episode and earns exactly one
+    message, no matter how often true is repeated within it.
 
-    That makes the version the identity of a notification: every software
-    version is reported once, however often availability toggles.
+    Acknowledging names the episode that was sent. Sending is awaited and the
+    state can move on while it is in flight - acknowledging "the current
+    state" would then swallow an episode that started in the meantime.
     """
 
     UNKNOWN_VERSIONS = ("unknown", "")
 
-    def __init__(self):
+    def __init__(self, clock=time.monotonic):
         self._lock = threading.Lock()
-        self._update_available = False
+        self._clock = clock
+        # None until the first message says so: a retained "false" at startup
+        # is then not mistaken for an update that just went away.
+        self._update_available = None
         self._update_version = "unknown"
-        self._notified_version = None
+        self._episode = 0  # counts availability episodes, 0 means none yet
+        self._episode_started_at = None
+        self._notified_episode = 0
 
     def record_version(self, version):
         """Store the version announced by TeslaMate."""
@@ -83,11 +103,21 @@ class State:
     def record_availability(self, available):
         """Store whether an update is available.
 
-        What was notified is deliberately kept: the version is the identity of
-        a notification, so availability flapping between true and false does
-        not produce a second message for the same software version.
+        Going from false to true opens a new episode. Repeated true changes
+        nothing, so a retained message or a reconnect does not notify twice.
+
+        Actually losing availability forgets the version: it described the
+        update that is now gone, and reusing it would announce the next
+        episode with the previous version. A version published after that
+        point still belongs to the coming episode and is kept - which is why
+        only the transition clears, not every repeated false.
         """
         with self._lock:
+            if available and not self._update_available:
+                self._episode += 1
+                self._episode_started_at = self._clock()
+            elif self._update_available and not available:
+                self._update_version = "unknown"
             self._update_available = available
 
     def current_version(self):
@@ -95,21 +125,31 @@ class State:
         with self._lock:
             return self._update_version
 
-    def pending_update(self):
-        """Return the version still waiting for a notification, else None."""
+    def pending_notification(self, grace_period):
+        """Return the notification that is due, or None.
+
+        A due episode without a version is held back for the grace period, so
+        a version arriving shortly after the availability still makes it into
+        the message. Once that time is up the message goes out without one.
+        """
         with self._lock:
             if not self._update_available:
                 return None
-            if self._update_version in self.UNKNOWN_VERSIONS:
+            if self._episode == self._notified_episode:
                 return None
-            if self._update_version == self._notified_version:
-                return None
-            return self._update_version
 
-    def mark_notified(self, version):
-        """Acknowledge exactly the version that was sent, not the current one."""
+            version = self._update_version
+            if version in self.UNKNOWN_VERSIONS:
+                if self._clock() - self._episode_started_at < grace_period:
+                    return None
+                version = None
+
+            return PendingNotification(episode=self._episode, version=version)
+
+    def mark_notified(self, episode):
+        """Acknowledge exactly the episode that was sent, not the current one."""
         with self._lock:
-            self._notified_version = version
+            self._notified_episode = episode
 
 
 def get_env_variable(var_name, default_value=None):
@@ -257,28 +297,36 @@ async def check_state_and_send_messages(bot, chat_id, state):
     """Check the state and send messages if necessary"""
     logger.debug("Checking state and sending messages...")
 
-    version = state.pending_update()
-    if version is None:
+    notification = state.pending_notification(VERSION_GRACE_PERIOD_SECONDS)
+    if notification is None:
         return
 
-    logger.debug("Update available and message not sent.")
-    logger.info(
-        "A new SW update to version: %s for your Tesla is available!",
-        version,
-    )
-    message_text = (
-        "<b>"
-        "SW Update 🎁"
-        "</b>\n"
-        "A new SW update to version: " + version + " for your Tesla is available!"
-    )
+    if notification.version is None:
+        logger.info("A new SW update for your Tesla is available!")
+        message_text = (
+            "<b>SW Update 🎁</b>\nA new SW update for your Tesla is available!"
+        )
+    else:
+        logger.info(
+            "A new SW update to version: %s for your Tesla is available!",
+            notification.version,
+        )
+        message_text = (
+            "<b>"
+            "SW Update 🎁"
+            "</b>\n"
+            "A new SW update to version: "
+            + notification.version
+            + " for your Tesla is available!"
+        )
+
     await send_telegram_message_to_chat_id(bot, chat_id, message_text)
 
-    # Acknowledge the version that was just sent. The state may have moved on
-    # during the await; a newer update then stays pending instead of being
-    # marked as reported.
-    state.mark_notified(version)
-    logger.debug("Version %s acknowledged as notified.", version)
+    # Acknowledge the episode that was just sent. The state may have moved on
+    # during the await; an episode that started in the meantime then stays
+    # pending instead of being marked as reported.
+    state.mark_notified(notification.episode)
+    logger.debug("Episode %s acknowledged as notified.", notification.episode)
 
 
 async def send_telegram_message_to_chat_id(bot, chat_id, message_text_to_send):
@@ -317,8 +365,8 @@ async def main():
             while True:
                 await check_state_and_send_messages(bot, chat_id, state)
 
-                logger.debug("Sleeping for 30 second.")
-                await asyncio.sleep(30)
+                logger.debug("Sleeping for %s seconds.", POLL_INTERVAL_SECONDS)
+                await asyncio.sleep(POLL_INTERVAL_SECONDS)
         except KeyboardInterrupt:
             logger.info("Exiting after receiving SIGINT (Ctrl+C) signal.")
     except OSError as e:
