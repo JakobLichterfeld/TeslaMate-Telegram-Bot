@@ -66,6 +66,7 @@
 - fix: ignore malformed MQTT payloads instead of acting on them
 - fix: escape MQTT versions before embedding them in Telegram HTML
 - fix(security): keep the bot token out of the log
+- fix: report a failed start with a non-zero exit code
 
 ## [1.0.1] - 2026-05-29
 

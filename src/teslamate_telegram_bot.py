@@ -35,6 +35,11 @@ AVAILABILITY_PAYLOADS = {"true": True, "false": False}
 # Ctrl+C sends the first, `docker stop` and systemd send the second
 STOP_SIGNALS = (signal.SIGINT, signal.SIGTERM)
 
+# What the process reports back: a failed start has to be distinguishable
+# from a requested stop, or a supervisor cannot tell whether to restart
+EXIT_SUCCESS = 0
+EXIT_FAILURE = 1
+
 # How long the loop waits between two checks
 POLL_INTERVAL_SECONDS = 30
 # How long a failed start waits before ending, so a restart policy backs off
@@ -595,9 +600,15 @@ async def shut_down(client, bot, chat_id):
 
 # Main function
 async def main():
-    """Main function"""
+    """Run the bot, returning the exit status.
+
+    A failed start reports failure, so a supervisor configured to restart on
+    failure - as the NixOS service is - actually restarts after a broker
+    outage instead of staying down for good.
+    """
     logger.info("Starting the Teslamate Telegram Bot.")
     stop_requested = asyncio.Event()
+    failed = False
     # Bound up front so the shutdown can tell what actually got set up.
     client = None
     bot = None
@@ -628,14 +639,19 @@ async def main():
                 ERROR_BACKOFF_SECONDS,
             )
             await wait_for_stop(stop_requested, ERROR_BACKOFF_SECONDS)
+            # Being asked to stop during the backoff is a regular shutdown:
+            # the operator wanted this, so it is not reported as a failure.
+            failed = not stop_requested.is_set()
         finally:
             await shut_down(client, bot, chat_id)
+
+    return EXIT_FAILURE if failed else EXIT_SUCCESS
 
 
 # Entry point
 def main_sync():
-    """Synchronous entry point for the bot."""
-    asyncio.run(main())
+    """Synchronous entry point for the bot, exiting with its status."""
+    raise SystemExit(asyncio.run(main()))
 
 
 if __name__ == "__main__":

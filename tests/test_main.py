@@ -110,8 +110,9 @@ def test_polls_the_state_in_a_loop(module, monkeypatch, sent_messages, calls):
 
 @pytest.mark.usefixtures("configured_env", "instant_backoff", "running_bot")
 def test_shuts_down_in_order(module, sent_messages, calls):
-    asyncio.run(module.main())
+    status = asyncio.run(module.main())
 
+    assert status == module.EXIT_SUCCESS
     assert calls == ["loop_start", "disconnect", "loop_stop", "bot.shutdown"]
     assert len(sent_messages) == 2
     assert "started" in sent_messages[0][1]
@@ -171,10 +172,12 @@ def test_survives_an_unreachable_broker(module, monkeypatch, sent_messages, call
 
     monkeypatch.setattr(module, "setup_mqtt_client", refuse)
 
-    asyncio.run(module.main())
+    status = asyncio.run(module.main())
 
     assert calls == []
     assert sent_messages == []
+    # A supervisor set to restart on failure has to see one.
+    assert status == module.EXIT_FAILURE
 
 
 @pytest.mark.usefixtures("configured_env", "instant_backoff")
@@ -264,11 +267,13 @@ def test_a_signal_during_the_backoff_ends_the_wait(module, monkeypatch, calls):
     monkeypatch.setattr(module, "setup_telegram_bot", fail_after_the_signal)
 
     started = time.monotonic()
-    asyncio.run(module.main())
+    status = asyncio.run(module.main())
     elapsed = time.monotonic() - started
 
     assert elapsed < 1  # not the five seconds of the backoff
     assert calls == ["disconnect", "loop_stop"]
+    # Asked to stop while backing off: wanted, so not a failure.
+    assert status == module.EXIT_SUCCESS
 
 
 @pytest.mark.usefixtures("configured_env", "sent_messages")
@@ -295,15 +300,21 @@ def test_restores_signal_handlers_it_found(module, monkeypatch, calls):
         signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
 
-def test_the_entry_point_runs_the_bot(module, monkeypatch):
+@pytest.mark.parametrize(
+    "status", [0, 1]
+)  # what main() reports, whatever the reason was
+def test_the_entry_point_exits_with_the_status_of_the_run(module, monkeypatch, status):
     started = []
 
     def run(coroutine):
         started.append(coroutine.cr_code.co_name)
         coroutine.close()
+        return status
 
     monkeypatch.setattr(module, "asyncio", types.SimpleNamespace(run=run))
 
-    module.main_sync()
+    with pytest.raises(SystemExit) as exit_info:
+        module.main_sync()
 
     assert started == ["main"]
+    assert exit_info.value.code == status
