@@ -62,7 +62,7 @@ jobs:
     if: needs.check_paths.outputs.githubfolder != 'true' || github.event_name == 'schedule'
     uses: ./.github/workflows/python_install_check.yml
 
-  nix_package:
+  nix_build:
     needs:
       - check_paths
       - spell_check
@@ -71,4 +71,4 @@ jobs:
       - python_tests
       - python_install_check
     if: needs.check_paths.outputs.githubfolder != 'true' || github.event_name == 'schedule'
-    uses: ./.github/workflows/nix_package.yml
+    uses: ./.github/workflows/nix_build.yml

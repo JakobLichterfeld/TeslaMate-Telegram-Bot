@@ -21,8 +21,34 @@
       pythonEnv = python.withPackages (ps: [
         teslamate-telegram-bot
       ]);
+
+      # secretspec refuses to load a manifest whose revision it does not know,
+      # and that takes the `secretspec run` below with it. Built against the
+      # secretspec this shell hands out, not the one a contributor happens to
+      # have installed.
+      #
+      # Every command that loads the manifest resolves the secrets too, so the
+      # required ones are answered from the environment with values nothing
+      # ever looks at: check asks whether they have one, not what it is. A new
+      # required secret has to be listed here as well.
+      secretspecManifestValid =
+        pkgs.runCommand "secretspec-manifest-valid"
+          {
+            nativeBuildInputs = [ pkgs.secretspec ];
+            TELEGRAM_BOT_API_KEY = "placeholder";
+            TELEGRAM_BOT_CHAT_ID = "placeholder";
+          }
+          ''
+            secretspec --file ${../../secretspec.toml} check --no-prompt --provider env
+            touch $out
+          '';
     in
     {
+      # As a check for `nix flake check`, and as a package so CI can build it
+      # for the system it runs on instead of hardcoding one.
+      checks.secretspec = secretspecManifestValid;
+      packages.check-secretspec = secretspecManifestValid;
+
       devenv.shells.default = {
         containers = lib.mkForce { }; # https://github.com/cachix/devenv/issues/528
         devenv.root =

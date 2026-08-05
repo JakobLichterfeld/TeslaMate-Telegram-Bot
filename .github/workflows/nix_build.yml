@@ -1,4 +1,7 @@
-name: Nix package
+# Everything the flake builds, from the package to the checks that only Nix
+# knows how to run. Kept together because they share one Nix installation and
+# one store cache.
+name: Nix build
 
 on:
   workflow_call:
@@ -21,13 +24,18 @@ jobs:
         # other on every run.
         uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
         with:
-          primary-key: nix-package-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock', 'pyproject.toml') }}
-          restore-prefixes-first-match: nix-package-${{ runner.os }}-
+          primary-key: nix-build-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock', 'pyproject.toml') }}
+          restore-prefixes-first-match: nix-build-${{ runner.os }}-
           gc-max-store-size-linux: 2147483648
           purge: true
-          purge-prefixes: nix-package-${{ runner.os }}-
+          purge-prefixes: nix-build-${{ runner.os }}-
           purge-created: 0
           purge-primary-key: never
+
+      - name: Ensure secretspec.toml is a manifest secretspec can load
+        # Seconds, and the last job in the chain: before the package build, so
+        # a broken manifest is not reported behind it.
+        run: nix build .#check-secretspec --no-link --print-build-logs
 
       - name: Build the package
         # The build-system entries in pyproject.toml are minimum requirements

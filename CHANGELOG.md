@@ -70,6 +70,7 @@
 - fix: confirm the subscriptions before reporting a running bot
 - fix: initialize the Telegram bot so its shutdown actually releases it
 - fix: end the run on a Telegram failure instead of crashing out of it
+- fix(nix): declare the secretspec revision the tool actually supports
 
 ## [1.0.1] - 2026-05-29
 
