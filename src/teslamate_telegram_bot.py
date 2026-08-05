@@ -400,17 +400,25 @@ async def main():
             stop_message = "<b>Teslamate Telegram Bot stopped. 🛑</b>\n "
             try:
                 await send_telegram_message_to_chat_id(bot, chat_id, stop_message)
-                # shutdown() releases the local request objects. close() would
-                # be the API call for moving a bot between servers, which
-                # Telegram answers with 429 in the first ten minutes after a
-                # start - every restart of a short-lived container.
-                await bot.shutdown()
             except TelegramError as telegram_error:
                 # Telegram being unreachable is what brings the bot down in the
                 # first place. Saying goodbye over the same channel then fails
                 # too, and an exception raised in here would replace the one
                 # that caused the shutdown, hiding the actual cause.
-                logger.error("Could not shut down the Telegram bot: %s", telegram_error)
+                logger.error("Could not send the stop message: %s", telegram_error)
+            finally:
+                # Releasing the resources must not depend on the goodbye
+                # getting through. shutdown() frees the local request objects;
+                # close() would be the API call for moving a bot between
+                # servers, which Telegram answers with 429 in the first ten
+                # minutes after a start - every restart of a short-lived
+                # container.
+                try:
+                    await bot.shutdown()
+                except TelegramError as telegram_error:
+                    logger.error(
+                        "Could not release the bot's resources: %s", telegram_error
+                    )
 
 
 # Entry point

@@ -145,12 +145,13 @@ def test_a_failing_goodbye_does_not_hide_the_original_error(module, monkeypatch,
     with pytest.raises(NetworkError, match="greeting failed"):
         asyncio.run(module.main())
 
-    # The MQTT side was still shut down before the exception left main().
-    assert calls == ["disconnect", "loop_stop"]
+    # Everything was still shut down before the exception left main().
+    assert calls == ["disconnect", "loop_stop", "bot.shutdown"]
 
 
 @pytest.mark.usefixtures("instant_sleep", "running_bot")
-def test_reports_a_failing_goodbye_after_a_regular_run(module, monkeypatch, calls):
+def test_releases_the_bot_even_when_the_goodbye_fails(module, monkeypatch, calls):
+    """A failing goodbye must not cost the bot's resources."""
     sent = []
 
     async def fail_on_goodbye(_bot, _chat_id, text):
@@ -163,6 +164,27 @@ def test_reports_a_failing_goodbye_after_a_regular_run(module, monkeypatch, call
     asyncio.run(module.main())
 
     assert len(sent) == 2
+    assert calls == ["loop_start", "disconnect", "loop_stop", "bot.shutdown"]
+
+
+@pytest.mark.usefixtures("instant_sleep", "sent_messages")
+def test_a_failing_release_does_not_take_down_the_shutdown(module, monkeypatch, calls):
+    """Even releasing the resources can fail; it must not raise from here."""
+
+    class BrokenBot(FakeBot):
+        async def shutdown(self):
+            raise NetworkError("Telegram is unreachable")
+
+    monkeypatch.setattr(module, "setup_mqtt_client", lambda _state: FakeClient(calls))
+    monkeypatch.setattr(module, "setup_telegram_bot", lambda: (BrokenBot(calls), 42))
+
+    async def interrupt(_bot, _chat_id, _state):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(module, "check_state_and_send_messages", interrupt)
+
+    asyncio.run(module.main())
+
     assert calls == ["loop_start", "disconnect", "loop_stop"]
 
 
