@@ -6,6 +6,9 @@ setup had raised.
 """
 
 import asyncio
+import os
+import signal
+import time
 import types
 
 import pytest
@@ -43,20 +46,50 @@ def fixture_calls():
     return []
 
 
+def raise_to_self(signal_number):
+    """Send a signal to this process, as Docker or a terminal would."""
+    os.kill(os.getpid(), signal_number)
+
+
 @pytest.fixture(name="running_bot")
 def fixture_running_bot(module, monkeypatch, calls):
-    """A setup that succeeds, with the main loop stopped by Ctrl+C."""
+    """A setup that succeeds, with the main loop stopped by SIGTERM."""
     monkeypatch.setattr(module, "setup_mqtt_client", lambda _state: FakeClient(calls))
     monkeypatch.setattr(module, "setup_telegram_bot", lambda: (FakeBot(calls), 42))
 
-    async def interrupt(_bot, _chat_id, _state):
-        raise KeyboardInterrupt
+    async def stop(_bot, _chat_id, _state):
+        raise_to_self(signal.SIGTERM)
 
-    monkeypatch.setattr(module, "check_state_and_send_messages", interrupt)
+    monkeypatch.setattr(module, "check_state_and_send_messages", stop)
 
 
-@pytest.mark.usefixtures("instant_sleep")
+@pytest.mark.usefixtures("instant_backoff")
+@pytest.mark.parametrize("signal_number", [signal.SIGINT, signal.SIGTERM])
+def test_stops_on_a_signal(module, monkeypatch, sent_messages, calls, signal_number):
+    """Ctrl+C sends SIGINT, `docker stop` and systemd send SIGTERM.
+
+    The signal is really sent to this process: without a handler SIGTERM
+    would end the test run outright, which is exactly what it does to the bot.
+    """
+    monkeypatch.setattr(module, "setup_mqtt_client", lambda _state: FakeClient(calls))
+    monkeypatch.setattr(module, "setup_telegram_bot", lambda: (FakeBot(calls), 42))
+
+    async def stop(_bot, _chat_id, _state):
+        raise_to_self(signal_number)
+
+    monkeypatch.setattr(module, "check_state_and_send_messages", stop)
+
+    asyncio.run(module.main())
+
+    assert calls == ["loop_start", "disconnect", "loop_stop", "bot.shutdown"]
+    assert len(sent_messages) == 2
+
+
+@pytest.mark.usefixtures("instant_backoff")
 def test_polls_the_state_in_a_loop(module, monkeypatch, sent_messages, calls):
+    # The wait between two rounds is a real one now: it ends early on a
+    # signal, so shorten it instead of sitting out the poll interval.
+    monkeypatch.setattr(module, "POLL_INTERVAL_SECONDS", 0.01)
     monkeypatch.setattr(module, "setup_mqtt_client", lambda _state: FakeClient(calls))
     monkeypatch.setattr(module, "setup_telegram_bot", lambda: (FakeBot(calls), 42))
     checks = []
@@ -64,7 +97,7 @@ def test_polls_the_state_in_a_loop(module, monkeypatch, sent_messages, calls):
     async def check(_bot, _chat_id, _state):
         checks.append(1)
         if len(checks) == 2:
-            raise KeyboardInterrupt
+            raise_to_self(signal.SIGTERM)
 
     monkeypatch.setattr(module, "check_state_and_send_messages", check)
 
@@ -75,7 +108,7 @@ def test_polls_the_state_in_a_loop(module, monkeypatch, sent_messages, calls):
     assert len(sent_messages) == 2
 
 
-@pytest.mark.usefixtures("instant_sleep", "running_bot")
+@pytest.mark.usefixtures("instant_backoff", "running_bot")
 def test_shuts_down_in_order(module, sent_messages, calls):
     asyncio.run(module.main())
 
@@ -85,7 +118,7 @@ def test_shuts_down_in_order(module, sent_messages, calls):
     assert "stopped" in sent_messages[1][1]
 
 
-@pytest.mark.usefixtures("instant_sleep")
+@pytest.mark.usefixtures("instant_backoff")
 def test_stops_when_the_broker_rejects_the_connection(
     module, monkeypatch, sent_messages, calls
 ):
@@ -110,7 +143,7 @@ def test_stops_when_the_broker_rejects_the_connection(
     assert len(sent_messages) == 2  # started, stopped
 
 
-@pytest.mark.usefixtures("instant_sleep", "running_bot", "sent_messages")
+@pytest.mark.usefixtures("instant_backoff", "running_bot", "sent_messages")
 def test_hands_its_own_state_to_the_client(module, monkeypatch, calls):
     seen = []
 
@@ -126,7 +159,7 @@ def test_hands_its_own_state_to_the_client(module, monkeypatch, calls):
     assert isinstance(seen[0], module.State)
 
 
-@pytest.mark.usefixtures("instant_sleep")
+@pytest.mark.usefixtures("instant_backoff")
 def test_survives_an_unreachable_broker(module, monkeypatch, sent_messages, calls):
     def refuse(_state):
         raise ConnectionRefusedError(61, "Connection refused")
@@ -139,7 +172,7 @@ def test_survives_an_unreachable_broker(module, monkeypatch, sent_messages, call
     assert sent_messages == []
 
 
-@pytest.mark.usefixtures("instant_sleep")
+@pytest.mark.usefixtures("instant_backoff")
 def test_disconnects_the_client_when_the_telegram_setup_fails(
     module, monkeypatch, sent_messages, calls
 ):
@@ -156,7 +189,7 @@ def test_disconnects_the_client_when_the_telegram_setup_fails(
     assert sent_messages == []
 
 
-@pytest.mark.usefixtures("instant_sleep", "running_bot")
+@pytest.mark.usefixtures("instant_backoff", "running_bot")
 def test_a_failing_goodbye_does_not_hide_the_original_error(module, monkeypatch, calls):
     """Telegram being down is what ends the bot, so the goodbye fails too."""
 
@@ -174,7 +207,7 @@ def test_a_failing_goodbye_does_not_hide_the_original_error(module, monkeypatch,
     assert calls == ["disconnect", "loop_stop", "bot.shutdown"]
 
 
-@pytest.mark.usefixtures("instant_sleep", "running_bot")
+@pytest.mark.usefixtures("instant_backoff", "running_bot")
 def test_releases_the_bot_even_when_the_goodbye_fails(module, monkeypatch, calls):
     """A failing goodbye must not cost the bot's resources."""
     sent = []
@@ -192,7 +225,7 @@ def test_releases_the_bot_even_when_the_goodbye_fails(module, monkeypatch, calls
     assert calls == ["loop_start", "disconnect", "loop_stop", "bot.shutdown"]
 
 
-@pytest.mark.usefixtures("instant_sleep", "sent_messages")
+@pytest.mark.usefixtures("instant_backoff", "sent_messages")
 def test_a_failing_release_does_not_take_down_the_shutdown(module, monkeypatch, calls):
     """Even releasing the resources can fail; it must not raise from here."""
 
@@ -203,14 +236,57 @@ def test_a_failing_release_does_not_take_down_the_shutdown(module, monkeypatch, 
     monkeypatch.setattr(module, "setup_mqtt_client", lambda _state: FakeClient(calls))
     monkeypatch.setattr(module, "setup_telegram_bot", lambda: (BrokenBot(calls), 42))
 
-    async def interrupt(_bot, _chat_id, _state):
-        raise KeyboardInterrupt
+    async def stop(_bot, _chat_id, _state):
+        raise_to_self(signal.SIGTERM)
 
-    monkeypatch.setattr(module, "check_state_and_send_messages", interrupt)
+    monkeypatch.setattr(module, "check_state_and_send_messages", stop)
 
     asyncio.run(module.main())
 
     assert calls == ["loop_start", "disconnect", "loop_stop"]
+
+
+def test_a_signal_during_the_backoff_ends_the_wait(module, monkeypatch, calls):
+    """`docker stop` during the backoff after a failed start must be heard."""
+    monkeypatch.setattr(module, "ERROR_BACKOFF_SECONDS", 5)
+    monkeypatch.setattr(module, "setup_mqtt_client", lambda _state: FakeClient(calls))
+
+    def fail_after_the_signal():
+        raise_to_self(signal.SIGTERM)
+        raise OSError("Error: Please set the environment variable TELEGRAM_BOT_API_KEY")
+
+    monkeypatch.setattr(module, "setup_telegram_bot", fail_after_the_signal)
+
+    started = time.monotonic()
+    asyncio.run(module.main())
+    elapsed = time.monotonic() - started
+
+    assert elapsed < 1  # not the five seconds of the backoff
+    assert calls == ["disconnect", "loop_stop"]
+
+
+@pytest.mark.usefixtures("sent_messages")
+def test_restores_signal_handlers_it_found(module, monkeypatch, calls):
+    """Removing a handler resets it to the default, which would clobber one
+    the surrounding process had installed."""
+
+    def previous_handler(_number, _frame):
+        pass  # pragma: no cover - never invoked, only registered
+
+    monkeypatch.setattr(module, "setup_mqtt_client", lambda _state: FakeClient(calls))
+    monkeypatch.setattr(module, "setup_telegram_bot", lambda: (FakeBot(calls), 42))
+
+    async def stop(_bot, _chat_id, _state):
+        raise_to_self(signal.SIGTERM)
+
+    monkeypatch.setattr(module, "check_state_and_send_messages", stop)
+    signal.signal(signal.SIGTERM, previous_handler)
+    try:
+        asyncio.run(module.main())
+
+        assert signal.getsignal(signal.SIGTERM) is previous_handler
+    finally:
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
 
 def test_the_entry_point_runs_the_bot(module, monkeypatch):

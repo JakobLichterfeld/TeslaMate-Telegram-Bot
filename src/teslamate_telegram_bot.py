@@ -2,9 +2,12 @@
 and sends them to a Telegram chat."""
 
 import asyncio
+import contextlib
+import functools
 import html
 import logging
 import os
+import signal
 import threading
 import time
 from collections import namedtuple
@@ -29,8 +32,13 @@ MQTT_NAMESPACE_DEFAULT = ""
 # strictly keeps damaged input from being read as "no update available".
 AVAILABILITY_PAYLOADS = {"true": True, "false": False}
 
+# Ctrl+C sends the first, `docker stop` and systemd send the second
+STOP_SIGNALS = (signal.SIGINT, signal.SIGTERM)
+
 # How long the loop waits between two checks
 POLL_INTERVAL_SECONDS = 30
+# How long a failed start waits before ending, so a restart policy backs off
+ERROR_BACKOFF_SECONDS = 120
 # How long an announced update may stay without a version before it is reported
 # without one. This only bridges the gap between two MQTT messages, so it is
 # much shorter than the poll interval and deliberately a separate figure.
@@ -397,84 +405,142 @@ async def send_telegram_message_to_chat_id(bot, chat_id, message_text_to_send):
     logger.debug("Message sent.")
 
 
+def request_stop(stop_requested, signal_number):
+    """Ask the main loop to finish, from a signal handler."""
+    logger.info("Received %s, shutting down.", signal.Signals(signal_number).name)
+    stop_requested.set()
+
+
+@contextlib.contextmanager
+def stop_signals_handled(stop_requested):
+    """Route SIGINT and SIGTERM to the stop event for the whole run.
+
+    Installed around everything, not just the polling loop: setup, the
+    greeting, the backoff after a failed start and the shutdown itself all
+    take time, and a stop arriving in any of them must be honoured rather
+    than killing the process where it stands.
+
+    Unix only: loop.add_signal_handler is not implemented on Windows, which
+    the project does not target - it ships as a Linux container and as a
+    NixOS service.
+    """
+    running_loop = asyncio.get_running_loop()
+    previous_handlers = {number: signal.getsignal(number) for number in STOP_SIGNALS}
+    for number in STOP_SIGNALS:
+        running_loop.add_signal_handler(
+            number, functools.partial(request_stop, stop_requested, number)
+        )
+    try:
+        yield
+    finally:
+        for number in STOP_SIGNALS:
+            # This resets the disposition to the default, so whatever the
+            # process had before is put back afterwards.
+            running_loop.remove_signal_handler(number)
+            if previous_handlers[number] is not None:
+                signal.signal(number, previous_handlers[number])
+
+
+async def wait_for_stop(stop_requested, timeout):
+    """Wait for a stop signal, giving up after the timeout."""
+    with contextlib.suppress(TimeoutError):
+        await asyncio.wait_for(stop_requested.wait(), timeout)
+
+
+async def run_until_stopped(bot, chat_id, state, stop_requested):
+    """Poll the state until the stop event is set.
+
+    The event is owned by main(), which arms it for the whole lifecycle; here
+    it only ends the wait between two rounds.
+    """
+    while not stop_requested.is_set():
+        # The connect callback cannot end the bot itself, it runs in paho's
+        # thread. Without this the loop would keep polling a state that
+        # nobody updates any more.
+        connection_failure = state.connection_failure()
+        if connection_failure is not None:
+            raise OSError(
+                f"Error: The MQTT broker rejected the connection: {connection_failure}"
+            )
+
+        await check_state_and_send_messages(bot, chat_id, state)
+
+        logger.debug("Sleeping for %s seconds.", POLL_INTERVAL_SECONDS)
+        await wait_for_stop(stop_requested, POLL_INTERVAL_SECONDS)
+
+
+async def shut_down(client, bot, chat_id):
+    """Release whatever was set up, in the order it has to happen.
+
+    A failure in setup_telegram_bot leaves an already connected MQTT client
+    behind, so each part is released on its own terms.
+    """
+    if client is not None:
+        logger.info("Disconnecting from MQTT broker.")
+        client.disconnect()
+        logger.info("Disconnected from MQTT broker.")
+        client.loop_stop()
+
+    logger.info("Exiting the Teslamate Telegram bot.")
+
+    if bot is None:
+        return
+
+    stop_message = "<b>Teslamate Telegram Bot stopped. 🛑</b>\n "
+    try:
+        await send_telegram_message_to_chat_id(bot, chat_id, stop_message)
+    except TelegramError as telegram_error:
+        # Telegram being unreachable is what brings the bot down in the first
+        # place. Saying goodbye over the same channel then fails too, and an
+        # exception raised in here would replace the one that caused the
+        # shutdown, hiding the actual cause.
+        logger.error("Could not send the stop message: %s", telegram_error)
+    finally:
+        # Releasing the resources must not depend on the goodbye getting
+        # through. shutdown() frees the local request objects; close() would
+        # be the API call for moving a bot between servers, which Telegram
+        # answers with 429 in the first ten minutes after a start - every
+        # restart of a short-lived container.
+        try:
+            await bot.shutdown()
+        except TelegramError as telegram_error:
+            logger.error("Could not release the bot's resources: %s", telegram_error)
+
+
 # Main function
 async def main():
     """Main function"""
     logger.info("Starting the Teslamate Telegram Bot.")
     state = State()
-    # Bound up front so the cleanup below can tell what actually got set up.
+    stop_requested = asyncio.Event()
+    # Bound up front so the shutdown can tell what actually got set up.
     client = None
     bot = None
     chat_id = None
-    try:
-        client = setup_mqtt_client(state)
-        bot, chat_id = setup_telegram_bot()
-        start_message = (
-            "<b>"
-            "Teslamate Telegram Bot started ✅"
-            "</b>\n"
-            "and will notify as soon as a new SW version is available."
-        )
-        await send_telegram_message_to_chat_id(bot, chat_id, start_message)
-
-        client.loop_start()
+    with stop_signals_handled(stop_requested):
         try:
-            while True:
-                # The connect callback cannot end the bot itself, it runs in
-                # paho's thread. Without this the loop would keep polling a
-                # state that nobody updates any more.
-                connection_failure = state.connection_failure()
-                if connection_failure is not None:
-                    raise OSError(
-                        f"Error: The MQTT broker rejected the connection: "
-                        f"{connection_failure}"
-                    )
+            client = setup_mqtt_client(state)
+            bot, chat_id = setup_telegram_bot()
+            start_message = (
+                "<b>"
+                "Teslamate Telegram Bot started ✅"
+                "</b>\n"
+                "and will notify as soon as a new SW version is available."
+            )
+            await send_telegram_message_to_chat_id(bot, chat_id, start_message)
 
-                await check_state_and_send_messages(bot, chat_id, state)
-
-                logger.debug("Sleeping for %s seconds.", POLL_INTERVAL_SECONDS)
-                await asyncio.sleep(POLL_INTERVAL_SECONDS)
-        except KeyboardInterrupt:
-            logger.info("Exiting after receiving SIGINT (Ctrl+C) signal.")
-    except OSError as e:
-        logger.error(e)
-        logger.info(
-            "Sleeping for 2 minutes before exiting or restarting, depending on your restart policy."
-        )
-        await asyncio.sleep(120)
-    finally:
-        # Clean exit for whatever was set up: a failure in setup_telegram_bot
-        # leaves an already connected MQTT client behind, and it still has to
-        # be disconnected.
-        if client is not None:
-            logger.info("Disconnecting from MQTT broker.")
-            client.disconnect()
-            logger.info("Disconnected from MQTT broker.")
-            client.loop_stop()
-        logger.info("Exiting the Teslamate Telegram bot.")
-        if bot is not None:
-            stop_message = "<b>Teslamate Telegram Bot stopped. 🛑</b>\n "
-            try:
-                await send_telegram_message_to_chat_id(bot, chat_id, stop_message)
-            except TelegramError as telegram_error:
-                # Telegram being unreachable is what brings the bot down in the
-                # first place. Saying goodbye over the same channel then fails
-                # too, and an exception raised in here would replace the one
-                # that caused the shutdown, hiding the actual cause.
-                logger.error("Could not send the stop message: %s", telegram_error)
-            finally:
-                # Releasing the resources must not depend on the goodbye
-                # getting through. shutdown() frees the local request objects;
-                # close() would be the API call for moving a bot between
-                # servers, which Telegram answers with 429 in the first ten
-                # minutes after a start - every restart of a short-lived
-                # container.
-                try:
-                    await bot.shutdown()
-                except TelegramError as telegram_error:
-                    logger.error(
-                        "Could not release the bot's resources: %s", telegram_error
-                    )
+            client.loop_start()
+            await run_until_stopped(bot, chat_id, state, stop_requested)
+        except OSError as e:
+            logger.error(e)
+            logger.info(
+                "Waiting %s seconds before exiting or restarting, depending on your "
+                "restart policy.",
+                ERROR_BACKOFF_SECONDS,
+            )
+            await wait_for_stop(stop_requested, ERROR_BACKOFF_SECONDS)
+        finally:
+            await shut_down(client, bot, chat_id)
 
 
 # Entry point

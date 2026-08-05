@@ -14,6 +14,7 @@
 - test: cover the startup paths and the notification logic
 - test: cover the untested functions and add coverage reporting
 - feat: notify on availability, with the version as optional detail
+- feat: shut down cleanly on SIGINT and SIGTERM
 
 #### Build, CI, internal
 

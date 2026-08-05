@@ -1,6 +1,5 @@
 """Shared fixtures for the test suite."""
 
-import asyncio
 import types
 
 import pytest
@@ -49,11 +48,12 @@ def fixture_sent_messages(monkeypatch):
     return sent
 
 
-@pytest.fixture(name="instant_sleep")
-def fixture_instant_sleep(monkeypatch):
-    """Skip the waits in main() without touching the real asyncio module."""
+@pytest.fixture(name="instant_backoff")
+def fixture_instant_backoff(monkeypatch):
+    """Make the backoff after a failed start take no real time.
 
-    async def sleep(_seconds):
-        await asyncio.sleep(0)
-
-    monkeypatch.setattr(bot, "asyncio", types.SimpleNamespace(sleep=sleep))
+    Only the duration is shortened: the waiting itself stays the real
+    asyncio.wait_for on the stop event, so the signal handling is exercised
+    exactly as it runs in production.
+    """
+    monkeypatch.setattr(bot, "ERROR_BACKOFF_SECONDS", 0)
