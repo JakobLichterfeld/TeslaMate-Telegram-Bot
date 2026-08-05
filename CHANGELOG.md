@@ -18,6 +18,7 @@
 - refactor: give the update state a single unknown value
 - refactor: read the configuration once at startup
 - docs: state that this is an unofficial community tool
+- docs(nix): describe the Telegram secrets correctly
 
 #### Build, CI, internal
 

@@ -19,8 +19,8 @@ in
       description = lib.mdDoc ''
         Path to an environment file containing the secrets for the TeslaMate Telegram Bot.
         Must contain at least:
-        - `TELEGRAM_BOT_API_KEY=secret_api_key` # encryption key used to encrypt database
-        - `TELEGRAM_BOT_CHAT_ID=secret_chat_id` # password used to authenticate to database
+        - `TELEGRAM_BOT_API_KEY=secret_api_key` # token of your Telegram bot, from BotFather
+        - `TELEGRAM_BOT_CHAT_ID=secret_chat_id` # numeric ID of the chat the messages go to
 
         Optional values:
         - `MQTT_BROKER_PASSWORD=password` # only needed when broker has authentication enabled
