@@ -13,14 +13,14 @@ class RecordingClient:
         self.subscribed.append(topic)
 
 
-def test_subscribes_to_both_topics_after_a_successful_connect(module, state):
+def test_subscribes_to_both_topics_after_a_successful_connect(module, context):
     client = RecordingClient()
 
-    module.on_connect(client, state, None, 0)
+    module.on_connect(client, context, None, 0)
 
     assert client.subscribed == [
-        module.TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE,
-        module.TESLAMATE_MQTT_TOPIC_UPDATE_VERSION,
+        context.config.update_available_topic,
+        context.config.update_version_topic,
     ]
 
 
@@ -33,17 +33,17 @@ def test_subscribes_to_both_topics_after_a_successful_connect(module, state):
         1,
     ],
 )
-def test_reports_a_rejected_connection_to_the_state(module, state, reason_code):
+def test_reports_a_rejected_connection_to_the_state(module, context, reason_code):
     """The callback runs in paho's thread, so it must not end the bot itself."""
     client = RecordingClient()
 
-    module.on_connect(client, state, None, reason_code)
+    module.on_connect(client, context, None, reason_code)
 
-    assert state.connection_failure() == reason_code
+    assert context.state.connection_failure() == reason_code
     assert client.subscribed == []
 
 
-def test_a_successful_connect_reports_no_failure(module, state):
-    module.on_connect(RecordingClient(), state, None, 0)
+def test_a_successful_connect_reports_no_failure(module, context):
+    module.on_connect(RecordingClient(), context, None, 0)
 
-    assert state.connection_failure() is None
+    assert context.state.connection_failure() is None

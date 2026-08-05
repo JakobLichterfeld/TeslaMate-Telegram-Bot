@@ -10,7 +10,7 @@ import os
 import signal
 import threading
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import paho.mqtt.client as mqtt
 from telegram import Bot
@@ -89,9 +89,9 @@ class Episode:
 class State:
     """A class to hold the state of the application.
 
-    Created in main() and handed to the MQTT client as its user data, so the
-    callbacks receive it as an argument instead of reaching for a module
-    global.
+    Created in main() and passed to the MQTT client inside an
+    MqttCallbackContext, which paho hands back as user data - so the callbacks
+    receive it as an argument instead of reaching for a module global.
 
     Written from paho's network thread and read from the asyncio side, so the
     fields are private and every access goes through a method holding the
@@ -232,43 +232,116 @@ def get_env_variable(var_name, default_value=None):
     return var_value
 
 
-# MQTT topics
-try:
-    car_id = int(get_env_variable(CAR_ID, CAR_ID_DEFAULT))
-except ValueError as value_error_car_id:
-    ERROR_MESSAGE_CAR_ID = (
-        f"Error: Please set the environment variable {CAR_ID} "
-        f"to a valid number and try again."
-    )
-    raise OSError(ERROR_MESSAGE_CAR_ID) from value_error_car_id
+@dataclass(frozen=True, slots=True)
+class Config:  # pylint: disable=too-many-instance-attributes
+    """Everything the bot reads from the environment, read once at startup.
+
+    Taken as a snapshot rather than looked up where needed: the settings then
+    cannot change halfway through a run, importing the module has no side
+    effects, and a test hands in a Config instead of arranging os.environ.
+
+    The secrets are kept out of repr(), so a config in a traceback or a debug
+    line does not carry the Telegram token or the broker password.
+
+    The field count is what the environment offers, not a design decision -
+    this holds settings, it does not do anything with them, so the limit on
+    instance attributes does not apply.
+    """
+
+    car_id: int
+    namespace: str
+    mqtt_host: str
+    mqtt_port: int
+    mqtt_username: str
+    mqtt_password: str = field(repr=False)
+    telegram_token: str = field(repr=False)
+    telegram_chat_id: int
+
+    @classmethod
+    def from_env(cls):
+        """Read and validate the environment, raising OSError on bad input."""
+        namespace = get_env_variable(MQTT_NAMESPACE, MQTT_NAMESPACE_DEFAULT)
+        if namespace:
+            logger.info("Using MQTT namespace: %s", namespace)
+
+        return cls(
+            car_id=cls._as_number(CAR_ID, get_env_variable(CAR_ID, CAR_ID_DEFAULT)),
+            namespace=namespace,
+            mqtt_host=get_env_variable(MQTT_BROKER_HOST, MQTT_BROKER_HOST_DEFAULT),
+            mqtt_port=cls._as_number(
+                MQTT_BROKER_PORT,
+                get_env_variable(MQTT_BROKER_PORT, MQTT_BROKER_PORT_DEFAULT),
+            ),
+            mqtt_username=get_env_variable(
+                MQTT_BROKER_USERNAME, MQTT_BROKER_USERNAME_DEFAULT
+            ),
+            mqtt_password=get_env_variable(
+                MQTT_BROKER_PASSWORD, MQTT_BROKER_PASSWORD_DEFAULT
+            ),
+            telegram_token=get_env_variable(TELEGRAM_BOT_API_KEY),
+            telegram_chat_id=cls._as_number(
+                TELEGRAM_BOT_CHAT_ID, get_env_variable(TELEGRAM_BOT_CHAT_ID)
+            ),
+        )
+
+    @staticmethod
+    def _as_number(var_name, value):
+        """Turn a setting into a number, or say which one is unusable."""
+        try:
+            return int(value)
+        except ValueError as value_error:
+            error_message = (
+                f"Error: Please set the environment variable {var_name} "
+                f"to a valid number and try again."
+            )
+            raise OSError(error_message) from value_error
+
+    @property
+    def topic_base(self) -> str:
+        """The prefix all topics of this car share."""
+        if self.namespace:
+            return f"teslamate/{self.namespace}/cars/{self.car_id}/"
+        return f"teslamate/cars/{self.car_id}/"
+
+    @property
+    def update_available_topic(self) -> str:
+        """Derived, never stored: it cannot drift from car id and namespace."""
+        return self.topic_base + "update_available"
+
+    @property
+    def update_version_topic(self) -> str:
+        """Derived, never stored: it cannot drift from car id and namespace."""
+        return self.topic_base + "update_version"
 
 
-namespace = get_env_variable(MQTT_NAMESPACE, MQTT_NAMESPACE_DEFAULT)
-if namespace:
-    logger.info("Using MQTT namespace: %s", namespace)
-    TESLAMATE_MQTT_TOPIC_BASE = f"teslamate/{namespace}/cars/{car_id}/"
-else:
-    TESLAMATE_MQTT_TOPIC_BASE = f"teslamate/cars/{car_id}/"
+@dataclass(frozen=True, slots=True)
+class MqttCallbackContext:
+    """What paho hands back to the callbacks as user data.
 
-TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE = TESLAMATE_MQTT_TOPIC_BASE + "update_available"
-TESLAMATE_MQTT_TOPIC_UPDATE_VERSION = TESLAMATE_MQTT_TOPIC_BASE + "update_version"
+    Both the settings and the shared state travel the same way, through the
+    argument paho provides for exactly this - no module globals involved, so
+    two clients with different car ids cannot leak into each other.
+    """
+
+    config: Config
+    state: State
 
 
 def on_connect(client, userdata, flags, reason_code, properties=None):  # noqa: ARG001  # pylint: disable=unused-argument
     """The callback for when the client receives a CONNACK response from the server.
 
     Signature is fixed by paho-mqtt; not every argument is used. userdata is
-    the State instance handed to the client in setup_mqtt_client.
+    the MqttCallbackContext handed to the client in setup_mqtt_client.
 
     A rejected connection is reported through the state rather than ended
     here: this runs in paho's network thread, where exiting would end that
     thread alone and leave main() polling forever without MQTT.
     """
-    state = userdata
+    context = userdata
     logger.debug("Connected with result code: %s", reason_code)
     if reason_code != 0:
         logger.error("Connection to the MQTT broker failed: %s", reason_code)
-        state.record_connection_failure(reason_code)
+        context.state.record_connection_failure(reason_code)
         return
 
     logger.info("Connected successfully to MQTT broker")
@@ -277,11 +350,11 @@ def on_connect(client, userdata, flags, reason_code, properties=None):  # noqa: 
     # reconnect then subscriptions will be renewed.
     logger.info("Subscribing to MQTT topics:")
 
-    client.subscribe(TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE)
-    logger.info("Subscribed to MQTT topic: %s", TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE)
+    client.subscribe(context.config.update_available_topic)
+    logger.info("Subscribed to MQTT topic: %s", context.config.update_available_topic)
 
-    client.subscribe(TESLAMATE_MQTT_TOPIC_UPDATE_VERSION)
-    logger.info("Subscribed to MQTT topic: %s", TESLAMATE_MQTT_TOPIC_UPDATE_VERSION)
+    client.subscribe(context.config.update_version_topic)
+    logger.info("Subscribed to MQTT topic: %s", context.config.update_version_topic)
 
     logger.info("Subscribed to all MQTT topics.")
 
@@ -292,9 +365,10 @@ def on_message(client, userdata, msg):  # noqa: ARG001  # pylint: disable=unused
     """The callback for when a PUBLISH message is received from the server.
 
     Signature is fixed by paho-mqtt; not every argument is used. userdata is
-    the State instance handed to the client in setup_mqtt_client.
+    the MqttCallbackContext handed to the client in setup_mqtt_client.
     """
-    state = userdata
+    context = userdata
+    state = context.state
     try:
         payload = msg.payload.decode()
     except UnicodeDecodeError:
@@ -309,11 +383,11 @@ def on_message(client, userdata, msg):  # noqa: ARG001  # pylint: disable=unused
 
     logger.debug("Received message: %s %s", msg.topic, payload)
 
-    if msg.topic == TESLAMATE_MQTT_TOPIC_UPDATE_VERSION:
+    if msg.topic == context.config.update_version_topic:
         state.record_version(payload)
         logger.info("Update to version %s available.", payload)
 
-    if msg.topic == TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE:
+    if msg.topic == context.config.update_available_topic:
         if payload not in AVAILABILITY_PAYLOADS:
             # Anything else is damaged input. Reading it as "false" would end
             # the episode and discard the version, so it is dropped instead.
@@ -333,51 +407,32 @@ def on_message(client, userdata, msg):  # noqa: ARG001  # pylint: disable=unused
             logger.debug("No SW update available.")
 
 
-def setup_mqtt_client(state):
+def setup_mqtt_client(context):
     """Setup the MQTT client
 
-    The state is registered as the client's user data, so paho hands it to the
-    callbacks on every message.
+    The context is registered as the client's user data, so paho hands the
+    settings and the shared state to the callbacks on every message.
     """
     logger.info("Setting up the MQTT client...")
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, userdata=state)
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, userdata=context)
     client.on_connect = on_connect
     client.on_message = on_message
 
-    username = get_env_variable(MQTT_BROKER_USERNAME, MQTT_BROKER_USERNAME_DEFAULT)
-    password = get_env_variable(MQTT_BROKER_PASSWORD, MQTT_BROKER_PASSWORD_DEFAULT)
-    client.username_pw_set(username, password)
+    config = context.config
+    client.username_pw_set(config.mqtt_username, config.mqtt_password)
 
-    host = get_env_variable(MQTT_BROKER_HOST, MQTT_BROKER_HOST_DEFAULT)
-    try:
-        port = int(get_env_variable(MQTT_BROKER_PORT, MQTT_BROKER_PORT_DEFAULT))
-    except ValueError as value_error_mqtt_broker_port:
-        error_message_mqtt_broker_port = (
-            f"Error: Please set the environment variable {MQTT_BROKER_PORT} "
-            f"to a valid number and try again."
-        )
-        raise OSError(error_message_mqtt_broker_port) from value_error_mqtt_broker_port
-    logger.info("Connect to MQTT broker at %s:%s", host, port)
-    client.connect(host, port, MQTT_BROKER_KEEPALIVE)
+    logger.info("Connect to MQTT broker at %s:%s", config.mqtt_host, config.mqtt_port)
+    client.connect(config.mqtt_host, config.mqtt_port, MQTT_BROKER_KEEPALIVE)
 
     return client
 
 
-def setup_telegram_bot():
+def setup_telegram_bot(config):
     """Setup the Telegram bot"""
     logger.info("Setting up the Telegram bot...")
-    bot = Bot(get_env_variable(TELEGRAM_BOT_API_KEY))
-    try:
-        chat_id = int(get_env_variable(TELEGRAM_BOT_CHAT_ID))
-    except ValueError as value_error_chat_id:
-        error_message_chat_id = (
-            f"Error: Please set the environment variable {TELEGRAM_BOT_CHAT_ID} "
-            f"to a valid number and try again."
-        )
-        raise OSError(error_message_chat_id) from value_error_chat_id
-
+    bot = Bot(config.telegram_token)
     logger.info("Connected to Telegram bot successfully.")
-    return bot, chat_id
+    return bot
 
 
 async def check_state_and_send_messages(bot, chat_id, state):
@@ -536,7 +591,6 @@ async def shut_down(client, bot, chat_id):
 async def main():
     """Main function"""
     logger.info("Starting the Teslamate Telegram Bot.")
-    state = State()
     stop_requested = asyncio.Event()
     # Bound up front so the shutdown can tell what actually got set up.
     client = None
@@ -544,8 +598,12 @@ async def main():
     chat_id = None
     with stop_signals_handled(stop_requested):
         try:
-            client = setup_mqtt_client(state)
-            bot, chat_id = setup_telegram_bot()
+            # Read once, here: unusable settings then take the same route as
+            # any other startup failure instead of breaking the import.
+            context = MqttCallbackContext(config=Config.from_env(), state=State())
+            chat_id = context.config.telegram_chat_id
+            client = setup_mqtt_client(context)
+            bot = setup_telegram_bot(context.config)
             start_message = (
                 "<b>"
                 "Teslamate Telegram Bot started ✅"
@@ -555,7 +613,7 @@ async def main():
             await send_telegram_message_to_chat_id(bot, chat_id, start_message)
 
             client.loop_start()
-            await run_until_stopped(bot, chat_id, state, stop_requested)
+            await run_until_stopped(bot, chat_id, context.state, stop_requested)
         except OSError as e:
             logger.error(e)
             logger.info(

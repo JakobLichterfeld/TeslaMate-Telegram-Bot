@@ -16,6 +16,7 @@
 - feat: notify on availability, with the version as optional detail
 - feat: shut down cleanly on SIGINT and SIGTERM
 - refactor: give the update state a single unknown value
+- refactor: read the configuration once at startup
 
 #### Build, CI, internal
 

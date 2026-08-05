@@ -19,6 +19,34 @@ def fixture_state():
     return bot.State()
 
 
+@pytest.fixture(name="config")
+def fixture_config():
+    """A complete configuration, built directly instead of from the environment."""
+    return bot.Config(
+        car_id=1,
+        namespace="",
+        mqtt_host="broker.local",
+        mqtt_port=1883,
+        mqtt_username="user",
+        mqtt_password="secret",
+        telegram_token="token",
+        telegram_chat_id=42,
+    )
+
+
+@pytest.fixture(name="context")
+def fixture_context(config, state):
+    """What paho hands to the callbacks as user data."""
+    return bot.MqttCallbackContext(config=config, state=state)
+
+
+@pytest.fixture(name="configured_env")
+def fixture_configured_env(monkeypatch):
+    """The environment a working deployment provides."""
+    monkeypatch.setenv("TELEGRAM_BOT_API_KEY", "token")
+    monkeypatch.setenv("TELEGRAM_BOT_CHAT_ID", "42")
+
+
 @pytest.fixture(name="message")
 def fixture_message():
     """Build an MQTT message as paho hands it to the callbacks.

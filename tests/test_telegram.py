@@ -22,35 +22,12 @@ def fixture_fake_bot_class(module, monkeypatch):
     return RecordingBot
 
 
-@pytest.fixture(name="telegram_env")
-def fixture_telegram_env(monkeypatch):
-    monkeypatch.setenv("TELEGRAM_BOT_API_KEY", "token")
-    monkeypatch.setenv("TELEGRAM_BOT_CHAT_ID", "4711")
-
-
-@pytest.mark.usefixtures("fake_bot_class", "telegram_env")
-def test_builds_the_bot_from_the_environment(module):
-    bot, chat_id = module.setup_telegram_bot()
+@pytest.mark.usefixtures("fake_bot_class")
+def test_builds_the_bot_from_the_config(module, config):
+    """The token comes from the config, not from the environment again."""
+    bot = module.setup_telegram_bot(config)
 
     assert bot.token == "token"
-    assert chat_id == 4711
-
-
-@pytest.mark.usefixtures("fake_bot_class")
-def test_rejects_a_chat_id_that_is_not_a_number(module, monkeypatch):
-    monkeypatch.setenv("TELEGRAM_BOT_API_KEY", "token")
-    monkeypatch.setenv("TELEGRAM_BOT_CHAT_ID", "not-a-chat")
-
-    with pytest.raises(OSError, match="TELEGRAM_BOT_CHAT_ID"):
-        module.setup_telegram_bot()
-
-
-@pytest.mark.usefixtures("fake_bot_class")
-def test_requires_the_api_key(module, monkeypatch):
-    monkeypatch.delenv("TELEGRAM_BOT_API_KEY", raising=False)
-
-    with pytest.raises(OSError, match="TELEGRAM_BOT_API_KEY"):
-        module.setup_telegram_bot()
 
 
 def test_sends_the_message_as_html(module):
