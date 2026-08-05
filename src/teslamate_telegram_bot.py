@@ -5,6 +5,7 @@ import asyncio
 import logging
 import os
 import sys
+import threading
 
 import paho.mqtt.client as mqtt
 from telegram import Bot
@@ -50,14 +51,65 @@ class State:
     Created in main() and handed to the MQTT client as its user data, so the
     callbacks receive it as an argument instead of reaching for a module
     global.
+
+    Written from paho's network thread and read from the asyncio side, so the
+    fields are private and every access goes through a method holding the
+    lock. The lock makes each of those methods an atomic local operation; it
+    says nothing about how the two MQTT topics relate to each other, since
+    availability and version arrive as separate messages.
+
+    What has been notified is remembered as the version itself, not as a
+    flag. Sending is awaited, and the state can move on while it is in
+    flight - a flag would then acknowledge whatever is current instead of
+    what actually went out, and the newer update would never be reported.
+
+    That makes the version the identity of a notification: every software
+    version is reported once, however often availability toggles.
     """
 
+    UNKNOWN_VERSIONS = ("unknown", "")
+
     def __init__(self):
-        self.update_available = False  # Flag to indicate if an update is available
-        self.update_available_message_sent = (
-            False  # Flag to indicate if the message has been sent
-        )
-        self.update_version = "unknown"  # The version of the update
+        self._lock = threading.Lock()
+        self._update_available = False
+        self._update_version = "unknown"
+        self._notified_version = None
+
+    def record_version(self, version):
+        """Store the version announced by TeslaMate."""
+        with self._lock:
+            self._update_version = version
+
+    def record_availability(self, available):
+        """Store whether an update is available.
+
+        What was notified is deliberately kept: the version is the identity of
+        a notification, so availability flapping between true and false does
+        not produce a second message for the same software version.
+        """
+        with self._lock:
+            self._update_available = available
+
+    def current_version(self):
+        """Return the version currently announced, whether notified or not."""
+        with self._lock:
+            return self._update_version
+
+    def pending_update(self):
+        """Return the version still waiting for a notification, else None."""
+        with self._lock:
+            if not self._update_available:
+                return None
+            if self._update_version in self.UNKNOWN_VERSIONS:
+                return None
+            if self._update_version == self._notified_version:
+                return None
+            return self._update_version
+
+    def mark_notified(self, version):
+        """Acknowledge exactly the version that was sent, not the current one."""
+        with self._lock:
+            self._notified_version = version
 
 
 def get_env_variable(var_name, default_value=None):
@@ -138,19 +190,20 @@ def on_message(client, userdata, msg):  # noqa: ARG001  # pylint: disable=unused
     logger.debug("Received message: %s %s", msg.topic, msg.payload.decode())
 
     if msg.topic == TESLAMATE_MQTT_TOPIC_UPDATE_VERSION:
-        state.update_version = msg.payload.decode()
-        logger.info("Update to version %s available.", state.update_version)
+        version = msg.payload.decode()
+        state.record_version(version)
+        logger.info("Update to version %s available.", version)
 
     if msg.topic == TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE:
-        state.update_available = msg.payload.decode() == "true"
-        if msg.payload.decode() == "true":
+        available = msg.payload.decode() == "true"
+        state.record_availability(available)
+        if available:
             logger.info(
                 "A new SW update to version: %s for your Tesla is available!",
-                state.update_version,
+                state.current_version(),
             )
-        if msg.payload.decode() == "false":
+        else:
             logger.debug("No SW update available.")
-            state.update_available_message_sent = False  # Reset the message sent flag
 
 
 def setup_mqtt_client(state):
@@ -204,26 +257,28 @@ async def check_state_and_send_messages(bot, chat_id, state):
     """Check the state and send messages if necessary"""
     logger.debug("Checking state and sending messages...")
 
-    if state.update_available and not state.update_available_message_sent:
-        logger.debug("Update available and message not sent.")
-        if state.update_version not in ("unknown", ""):
-            logger.info(
-                "A new SW update to version: %s for your Tesla is available!",
-                state.update_version,
-            )
-            message_text = (
-                "<b>"
-                "SW Update 🎁"
-                "</b>\n"
-                "A new SW update to version: "
-                + state.update_version
-                + " for your Tesla is available!"
-            )
-            await send_telegram_message_to_chat_id(bot, chat_id, message_text)
+    version = state.pending_update()
+    if version is None:
+        return
 
-            # Mark the message as sent
-            state.update_available_message_sent = True
-            logger.debug("Message sent flag set.")
+    logger.debug("Update available and message not sent.")
+    logger.info(
+        "A new SW update to version: %s for your Tesla is available!",
+        version,
+    )
+    message_text = (
+        "<b>"
+        "SW Update 🎁"
+        "</b>\n"
+        "A new SW update to version: " + version + " for your Tesla is available!"
+    )
+    await send_telegram_message_to_chat_id(bot, chat_id, message_text)
+
+    # Acknowledge the version that was just sent. The state may have moved on
+    # during the await; a newer update then stays pending instead of being
+    # marked as reported.
+    state.mark_notified(version)
+    logger.debug("Version %s acknowledged as notified.", version)
 
 
 async def send_telegram_message_to_chat_id(bot, chat_id, message_text_to_send):

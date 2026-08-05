@@ -9,33 +9,61 @@ def test_stores_the_announced_version(module, state, message):
         None, state, message(module.TESLAMATE_MQTT_TOPIC_UPDATE_VERSION, "2026.4.1")
     )
 
-    assert state.update_version == "2026.4.1"
+    assert state.current_version() == "2026.4.1"
 
 
 def test_marks_an_update_as_available(module, state, message):
     module.on_message(
+        None, state, message(module.TESLAMATE_MQTT_TOPIC_UPDATE_VERSION, "2026.4.1")
+    )
+    module.on_message(
         None, state, message(module.TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE, "true")
     )
 
-    assert state.update_available is True
+    assert state.pending_update() == "2026.4.1"
 
 
-def test_clears_the_sent_flag_when_the_update_is_gone(module, state, message):
-    state.update_available_message_sent = True
+def test_an_update_that_is_gone_stops_being_pending(module, state, message):
+    module.on_message(
+        None, state, message(module.TESLAMATE_MQTT_TOPIC_UPDATE_VERSION, "2026.4.1")
+    )
+    module.on_message(
+        None, state, message(module.TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE, "true")
+    )
 
     module.on_message(
         None, state, message(module.TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE, "false")
     )
 
-    assert state.update_available is False
-    assert state.update_available_message_sent is False
+    assert state.pending_update() is None
+
+
+def test_the_same_version_is_not_reported_again_after_it_reappears(
+    module, state, message
+):
+    module.on_message(
+        None, state, message(module.TESLAMATE_MQTT_TOPIC_UPDATE_VERSION, "2026.4.1")
+    )
+    module.on_message(
+        None, state, message(module.TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE, "true")
+    )
+    state.mark_notified("2026.4.1")
+
+    module.on_message(
+        None, state, message(module.TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE, "false")
+    )
+    module.on_message(
+        None, state, message(module.TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE, "true")
+    )
+
+    assert state.pending_update() is None
 
 
 def test_ignores_unrelated_topics(module, state, message):
     module.on_message(None, state, message("teslamate/cars/1/battery_level", "42"))
 
-    assert state.update_version == "unknown"
-    assert state.update_available is False
+    assert state.current_version() == "unknown"
+    assert state.pending_update() is None
 
 
 def test_states_do_not_leak_into_each_other(module, message):
@@ -45,5 +73,5 @@ def test_states_do_not_leak_into_each_other(module, message):
         first, first, message(module.TESLAMATE_MQTT_TOPIC_UPDATE_VERSION, "2026.4.1")
     )
 
-    assert first.update_version == "2026.4.1"
-    assert second.update_version == "unknown"
+    assert first.current_version() == "2026.4.1"
+    assert second.current_version() == "unknown"
