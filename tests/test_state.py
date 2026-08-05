@@ -152,7 +152,7 @@ def test_the_version_of_a_finished_episode_is_not_reused(state):
 
     state.record_availability(False)
 
-    assert state.current_version() == "unknown"
+    assert state.current_version() is None
 
 
 def test_a_version_published_before_the_new_episode_is_kept(state):
@@ -198,6 +198,16 @@ def test_reports_the_current_version(state):
     state.record_version("2026.4.1")
 
     assert state.current_version() == "2026.4.1"
+
+
+@pytest.mark.parametrize("payload", ["", "unknown"])
+def test_the_unknown_payloads_are_normalised_at_the_boundary(state, payload):
+    """Inside there is one way of saying it: None."""
+    state.record_version("2026.4.1")
+
+    state.record_version(payload)
+
+    assert state.current_version() is None
 
 
 def test_the_fields_are_private(state):

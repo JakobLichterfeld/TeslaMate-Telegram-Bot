@@ -10,7 +10,7 @@ import os
 import signal
 import threading
 import time
-from collections import namedtuple
+from dataclasses import dataclass
 
 import paho.mqtt.client as mqtt
 from telegram import Bot
@@ -65,14 +65,25 @@ logging.basicConfig(
 # Module logger, attached to the root handler configured above
 logger = logging.getLogger(__name__)
 
-# What check_state_and_send_messages found to be due: which episode, and the
-# version if one is known by now
-PendingNotification = namedtuple("PendingNotification", ["episode", "version"])
 
-# An availability episode: which one it is, and when it began. The two belong
-# together - the number identifies the notification, the start time bounds how
-# long it waits for a version.
-Episode = namedtuple("Episode", ["number", "started_at"])
+@dataclass(frozen=True, slots=True)
+class PendingNotification:
+    """What check_state_and_send_messages found to be due."""
+
+    episode: int
+    version: str | None  # None when no version is known by now
+
+
+@dataclass(frozen=True, slots=True)
+class Episode:
+    """An availability episode: which one it is, and when it began.
+
+    The two belong together - the number identifies the notification, the
+    start time bounds how long it waits for a version.
+    """
+
+    number: int
+    started_at: float | None
 
 
 class State:
@@ -97,9 +108,16 @@ class State:
     Acknowledging names the episode that was sent. Sending is awaited and the
     state can move on while it is in flight - acknowledging "the current
     state" would then swallow an episode that started in the meantime.
+
+    "No version known" is a single value inside: None. The empty string and
+    the literal "unknown" are normalised away where they enter, so no reader
+    has to know about more than one way of saying it.
     """
 
-    UNKNOWN_VERSIONS = ("unknown", "")
+    # TeslaMate documents update_version as a concrete version number and no
+    # sentinel, so these are defensive: an empty retained message, and the
+    # placeholder this bot itself used to store.
+    UNKNOWN_VERSION_PAYLOADS = ("", "unknown")
 
     def __init__(self, clock=time.monotonic):
         self._lock = threading.Lock()
@@ -107,15 +125,17 @@ class State:
         # None until the first message says so: a retained "false" at startup
         # is then not mistaken for an update that just went away.
         self._update_available = None
-        self._update_version = "unknown"
+        self._update_version: str | None = None
         self._episode = Episode(number=0, started_at=None)  # 0 means none yet
         self._notified_episode = 0
         self._connection_failure = None
 
-    def record_version(self, version):
-        """Store the version announced by TeslaMate."""
+    def record_version(self, version: str) -> None:
+        """Store the version announced by TeslaMate, normalising the unknowns."""
         with self._lock:
-            self._update_version = version
+            self._update_version = (
+                None if version in self.UNKNOWN_VERSION_PAYLOADS else version
+            )
 
     def record_availability(self, available):
         """Store whether an update is available.
@@ -135,15 +155,15 @@ class State:
                     number=self._episode.number + 1, started_at=self._clock()
                 )
             elif self._update_available and not available:
-                self._update_version = "unknown"
+                self._update_version = None
             self._update_available = available
 
-    def current_version(self):
-        """Return the version currently announced, whether notified or not."""
+    def current_version(self) -> str | None:
+        """Return the version currently announced, None if none is known."""
         with self._lock:
             return self._update_version
 
-    def pending_notification(self, grace_period):
+    def pending_notification(self, grace_period: float) -> PendingNotification | None:
         """Return the notification that is due, or None.
 
         A due episode without a version is held back for the grace period, so
@@ -156,11 +176,14 @@ class State:
             if self._episode.number == self._notified_episode:
                 return None
 
+            # Only the initial episode carries no start time, and it is ruled
+            # out above: availability has been seen, so an episode has begun.
+            started_at = self._episode.started_at
+            assert started_at is not None
+
             version = self._update_version
-            if version in self.UNKNOWN_VERSIONS:
-                if self._clock() - self._episode.started_at < grace_period:
-                    return None
-                version = None
+            if version is None and self._clock() - started_at < grace_period:
+                return None
 
             return PendingNotification(episode=self._episode.number, version=version)
 
@@ -300,9 +323,11 @@ def on_message(client, userdata, msg):  # noqa: ARG001  # pylint: disable=unused
         available = AVAILABILITY_PAYLOADS[payload]
         state.record_availability(available)
         if available:
+            # "unknown" only as a display value here; inside, None is the one
+            # way of saying that no version is known.
             logger.info(
                 "A new SW update to version: %s for your Tesla is available!",
-                state.current_version(),
+                state.current_version() or "unknown",
             )
         else:
             logger.debug("No SW update available.")

@@ -15,6 +15,7 @@
 - test: cover the untested functions and add coverage reporting
 - feat: notify on availability, with the version as optional detail
 - feat: shut down cleanly on SIGINT and SIGTERM
+- refactor: give the update state a single unknown value
 
 #### Build, CI, internal
 

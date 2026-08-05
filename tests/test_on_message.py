@@ -62,7 +62,7 @@ def test_the_version_of_a_finished_episode_is_not_reused(module, state, message)
 
     module.on_message(None, state, availability_message(module, message, "false"))
 
-    assert state.current_version() == "unknown"
+    assert state.current_version() is None
 
 
 def test_a_repeated_availability_message_changes_nothing(module, state, message):
@@ -128,7 +128,7 @@ def test_an_undecodable_payload_is_ignored(module, state, message, caplog, topic
 def test_ignores_unrelated_topics(module, state, message):
     module.on_message(None, state, message("teslamate/cars/1/battery_level", "42"))
 
-    assert state.current_version() == "unknown"
+    assert state.current_version() is None
     assert state.pending_notification(GRACE) is None
 
 
@@ -138,4 +138,4 @@ def test_states_do_not_leak_into_each_other(module, message):
     module.on_message(first, first, version_message(module, message, "2026.4.1"))
 
     assert first.current_version() == "2026.4.1"
-    assert second.current_version() == "unknown"
+    assert second.current_version() is None
