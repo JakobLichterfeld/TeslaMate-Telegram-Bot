@@ -6,13 +6,14 @@ setup had raised.
 """
 
 import asyncio
+import logging
 import os
 import signal
 import time
 import types
 
 import pytest
-from telegram.error import NetworkError
+from telegram.error import BadRequest, InvalidToken, NetworkError
 
 
 class FakeClient:
@@ -231,21 +232,87 @@ def test_disconnects_the_client_when_the_telegram_setup_fails(
 
 
 @pytest.mark.usefixtures("configured_env", "instant_backoff", "running_bot")
-def test_a_failing_goodbye_does_not_hide_the_original_error(module, monkeypatch, calls):
+def test_a_failing_goodbye_does_not_hide_the_original_error(
+    module, monkeypatch, calls, caplog
+):
     """Telegram being down is what ends the bot, so the goodbye fails too."""
 
     async def unreachable(_bot, _chat_id, text):
-        # Distinct messages: the assertion below pins down which of the two
-        # failures leaves main(), the original one or the one from the cleanup.
+        # Distinct messages: the assertions below pin down which of the two
+        # failures is reported as the reason the run ended, the original one
+        # or the one from the cleanup.
         raise NetworkError("greeting failed" if "started" in text else "goodbye failed")
 
     monkeypatch.setattr(module, "send_telegram_message_to_chat_id", unreachable)
 
-    with pytest.raises(NetworkError, match="greeting failed"):
-        asyncio.run(module.main())
+    with caplog.at_level(logging.ERROR):
+        status = asyncio.run(module.main())
 
-    # Everything was still shut down before the exception left main().
+    assert status == module.EXIT_FAILURE
+    assert "The Telegram request failed: greeting failed" in caplog.text
+    assert "Could not send the stop message: goodbye failed" in caplog.text
+    # Everything was still shut down.
     assert calls == ["loop_start", "disconnect", "loop_stop", "bot.shutdown"]
+
+
+@pytest.mark.usefixtures("configured_env", "instant_backoff")
+def test_an_unusable_chat_ends_the_run_like_any_other_failure(
+    module, monkeypatch, sent_messages, calls, caplog
+):
+    """A wrong chat id is a configuration error, not a crash.
+
+    Telegram answers it on every round, so without this the bot would end in
+    a traceback and be restarted straight into the same wrong setting.
+    """
+    monkeypatch.setattr(
+        module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
+    )
+    monkeypatch.setattr(module, "setup_telegram_bot", bot_setup(FakeBot(calls)))
+
+    async def chat_gone(_bot, _chat_id, _state):
+        raise BadRequest("Chat not found")
+
+    monkeypatch.setattr(module, "check_state_and_send_messages", chat_gone)
+
+    with caplog.at_level(logging.ERROR):
+        status = asyncio.run(module.main())
+
+    assert status == module.EXIT_FAILURE
+    assert "The Telegram request failed: Chat not found" in caplog.text
+    assert calls == ["loop_start", "disconnect", "loop_stop", "bot.shutdown"]
+    assert len(sent_messages) == 2  # the greeting went out, the goodbye too
+
+
+@pytest.mark.usefixtures("instant_backoff")
+def test_a_rejected_token_is_reported_without_the_token(
+    module, monkeypatch, sent_messages, calls, caplog
+):
+    """The exception for a rejected token quotes the token itself.
+
+    Logging it verbatim would put the secret into `docker logs`, which is
+    exactly what the httpx silencing keeps it out of.
+    """
+    token = "1234567:AAH-fake-token-that-must-not-appear"
+    monkeypatch.setenv("TELEGRAM_BOT_API_KEY", token)
+    monkeypatch.setenv("TELEGRAM_BOT_CHAT_ID", "42")
+    monkeypatch.setattr(
+        module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
+    )
+
+    async def rejected(_config):
+        raise InvalidToken(f"The token `{token}` was rejected by the server.")
+
+    monkeypatch.setattr(module, "setup_telegram_bot", rejected)
+
+    with caplog.at_level(logging.ERROR):
+        status = asyncio.run(module.main())
+
+    assert status == module.EXIT_FAILURE
+    assert "was rejected by the server" in caplog.text
+    assert token not in caplog.text
+    # No bot to release, and no message could be sent with a refused token.
+    assert calls == ["disconnect", "loop_stop"]
+    assert sent_messages == []
 
 
 @pytest.mark.usefixtures("configured_env", "instant_backoff", "running_bot")

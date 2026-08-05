@@ -54,6 +54,9 @@ ERROR_BACKOFF_SECONDS = 120
 # much shorter than the poll interval and deliberately a separate figure.
 VERSION_GRACE_PERIOD_SECONDS = 5
 
+# What takes the place of a secret in a log line
+REDACTED = "***"
+
 # Environment variables
 TELEGRAM_BOT_API_KEY = "TELEGRAM_BOT_API_KEY"
 TELEGRAM_BOT_CHAT_ID = "TELEGRAM_BOT_CHAT_ID"
@@ -796,6 +799,24 @@ async def shut_down(client, bot, chat_id):
             logger.error("Could not release the bot's resources: %s", telegram_error)
 
 
+def describe_failure(error, token=None):
+    """Turn what ended the run into one log line that carries no secret.
+
+    This module's own OSErrors are written as full sentences and are logged
+    as they are. Telegram's errors are not, so they are given the same shape
+    - and they are scrubbed first: InvalidToken quotes the very token the
+    server rejected, and that must not reach `docker logs` any more than
+    httpx's request lines may.
+    """
+    if not isinstance(error, TelegramError):
+        return str(error)
+
+    reason = str(error)
+    if token:
+        reason = reason.replace(token, REDACTED)
+    return f"Error: The Telegram request failed: {reason}"
+
+
 # Main function
 async def main():
     """Run the bot, returning the exit status.
@@ -803,6 +824,11 @@ async def main():
     A failed start reports failure, so a supervisor configured to restart on
     failure - as the NixOS service is - actually restarts after a broker
     outage instead of staying down for good.
+
+    Telegram failing takes the same route as the broker failing: a rejected
+    token, a chat the bot cannot post to and an unreachable API all end the
+    run with a logged reason and the backoff, rather than with a traceback
+    and an immediate restart.
     """
     logger.info("Starting the Teslamate Telegram Bot.")
     stop_requested = asyncio.Event()
@@ -811,6 +837,7 @@ async def main():
     client = None
     bot = None
     chat_id = None
+    token = None
     with stop_signals_handled(stop_requested):
         try:
             # Read once, here: unusable settings then take the same route as
@@ -819,6 +846,8 @@ async def main():
                 config=Config.from_env(), state=State(), status=BrokerStatus()
             )
             chat_id = context.config.telegram_chat_id
+            # Only to keep it out of a log line, never to log it.
+            token = context.config.telegram_token
             client = setup_mqtt_client(context)
             bot = await setup_telegram_bot(context.config)
 
@@ -837,8 +866,8 @@ async def main():
                 await send_telegram_message_to_chat_id(bot, chat_id, start_message)
 
                 await run_until_stopped(bot, chat_id, context, stop_requested)
-        except OSError as e:
-            logger.error(e)
+        except (OSError, TelegramError) as e:
+            logger.error(describe_failure(e, token))
             logger.info(
                 "Waiting %s seconds before exiting or restarting, depending on your "
                 "restart policy.",
