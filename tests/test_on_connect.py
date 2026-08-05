@@ -33,11 +33,17 @@ def test_subscribes_to_both_topics_after_a_successful_connect(module, state):
         1,
     ],
 )
-def test_exits_on_a_rejected_connection(module, state, reason_code):
+def test_reports_a_rejected_connection_to_the_state(module, state, reason_code):
+    """The callback runs in paho's thread, so it must not end the bot itself."""
     client = RecordingClient()
 
-    with pytest.raises(SystemExit) as exit_info:
-        module.on_connect(client, state, None, reason_code)
+    module.on_connect(client, state, None, reason_code)
 
-    assert exit_info.value.code == 1
+    assert state.connection_failure() == reason_code
     assert client.subscribed == []
+
+
+def test_a_successful_connect_reports_no_failure(module, state):
+    module.on_connect(RecordingClient(), state, None, 0)
+
+    assert state.connection_failure() is None

@@ -57,6 +57,7 @@
 - fix: never lose an update that arrives while notifying
 - fix(security): never log secret environment variable values
 - fix: release the bot's resources even if the goodbye fails
+- fix: end the bot when the broker rejects the connection
 
 ## [1.0.1] - 2026-05-29
 

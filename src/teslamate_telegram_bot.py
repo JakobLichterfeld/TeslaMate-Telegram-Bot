@@ -4,7 +4,6 @@ and sends them to a Telegram chat."""
 import asyncio
 import logging
 import os
-import sys
 import threading
 import time
 from collections import namedtuple
@@ -57,6 +56,11 @@ logger = logging.getLogger(__name__)
 # version if one is known by now
 PendingNotification = namedtuple("PendingNotification", ["episode", "version"])
 
+# An availability episode: which one it is, and when it began. The two belong
+# together - the number identifies the notification, the start time bounds how
+# long it waits for a version.
+Episode = namedtuple("Episode", ["number", "started_at"])
+
 
 class State:
     """A class to hold the state of the application.
@@ -91,9 +95,9 @@ class State:
         # is then not mistaken for an update that just went away.
         self._update_available = None
         self._update_version = "unknown"
-        self._episode = 0  # counts availability episodes, 0 means none yet
-        self._episode_started_at = None
+        self._episode = Episode(number=0, started_at=None)  # 0 means none yet
         self._notified_episode = 0
+        self._connection_failure = None
 
     def record_version(self, version):
         """Store the version announced by TeslaMate."""
@@ -114,8 +118,9 @@ class State:
         """
         with self._lock:
             if available and not self._update_available:
-                self._episode += 1
-                self._episode_started_at = self._clock()
+                self._episode = Episode(
+                    number=self._episode.number + 1, started_at=self._clock()
+                )
             elif self._update_available and not available:
                 self._update_version = "unknown"
             self._update_available = available
@@ -135,21 +140,36 @@ class State:
         with self._lock:
             if not self._update_available:
                 return None
-            if self._episode == self._notified_episode:
+            if self._episode.number == self._notified_episode:
                 return None
 
             version = self._update_version
             if version in self.UNKNOWN_VERSIONS:
-                if self._clock() - self._episode_started_at < grace_period:
+                if self._clock() - self._episode.started_at < grace_period:
                     return None
                 version = None
 
-            return PendingNotification(episode=self._episode, version=version)
+            return PendingNotification(episode=self._episode.number, version=version)
 
     def mark_notified(self, episode):
         """Acknowledge exactly the episode that was sent, not the current one."""
         with self._lock:
             self._notified_episode = episode
+
+    def record_connection_failure(self, reason):
+        """Report that the broker rejected the connection.
+
+        The callback runs in paho's network thread, where exiting would only
+        end that thread and leave the asyncio loop polling a state nobody
+        updates any more. main() picks the reason up and stops the bot.
+        """
+        with self._lock:
+            self._connection_failure = reason
+
+    def connection_failure(self):
+        """Return why the broker rejected the connection, or None."""
+        with self._lock:
+            return self._connection_failure
 
 
 def get_env_variable(var_name, default_value=None):
@@ -201,20 +221,21 @@ TESLAMATE_MQTT_TOPIC_UPDATE_VERSION = TESLAMATE_MQTT_TOPIC_BASE + "update_versio
 def on_connect(client, userdata, flags, reason_code, properties=None):  # noqa: ARG001  # pylint: disable=unused-argument
     """The callback for when the client receives a CONNACK response from the server.
 
-    Signature is fixed by paho-mqtt; not every argument is used.
+    Signature is fixed by paho-mqtt; not every argument is used. userdata is
+    the State instance handed to the client in setup_mqtt_client.
+
+    A rejected connection is reported through the state rather than ended
+    here: this runs in paho's network thread, where exiting would end that
+    thread alone and leave main() polling forever without MQTT.
     """
+    state = userdata
     logger.debug("Connected with result code: %s", reason_code)
-    if reason_code == "Unsupported protocol version":
-        logger.error("Unsupported protocol version")
-        sys.exit(1)
-    if reason_code == "Client identifier not valid":
-        logger.error("Client identifier not valid")
-        sys.exit(1)
-    if reason_code == 0:
-        logger.info("Connected successfully to MQTT broker")
-    else:
-        logger.error("Connection failed")
-        sys.exit(1)
+    if reason_code != 0:
+        logger.error("Connection to the MQTT broker failed: %s", reason_code)
+        state.record_connection_failure(reason_code)
+        return
+
+    logger.info("Connected successfully to MQTT broker")
 
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
@@ -374,6 +395,16 @@ async def main():
         client.loop_start()
         try:
             while True:
+                # The connect callback cannot end the bot itself, it runs in
+                # paho's thread. Without this the loop would keep polling a
+                # state that nobody updates any more.
+                connection_failure = state.connection_failure()
+                if connection_failure is not None:
+                    raise OSError(
+                        f"Error: The MQTT broker rejected the connection: "
+                        f"{connection_failure}"
+                    )
+
                 await check_state_and_send_messages(bot, chat_id, state)
 
                 logger.debug("Sleeping for %s seconds.", POLL_INTERVAL_SECONDS)

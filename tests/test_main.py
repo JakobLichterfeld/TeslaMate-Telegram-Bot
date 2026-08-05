@@ -85,6 +85,31 @@ def test_shuts_down_in_order(module, sent_messages, calls):
     assert "stopped" in sent_messages[1][1]
 
 
+@pytest.mark.usefixtures("instant_sleep")
+def test_stops_when_the_broker_rejects_the_connection(
+    module, monkeypatch, sent_messages, calls
+):
+    """The connect callback cannot end the bot from paho's thread."""
+
+    def setup(state):
+        # paho reports the rejection through the state, as on_connect does.
+        state.record_connection_failure("Not authorized")
+        return FakeClient(calls)
+
+    monkeypatch.setattr(module, "setup_mqtt_client", setup)
+    monkeypatch.setattr(module, "setup_telegram_bot", lambda: (FakeBot(calls), 42))
+
+    async def never_called(_bot, _chat_id, _state):
+        raise AssertionError("the loop must not get this far")
+
+    monkeypatch.setattr(module, "check_state_and_send_messages", never_called)
+
+    asyncio.run(module.main())
+
+    assert calls == ["loop_start", "disconnect", "loop_stop", "bot.shutdown"]
+    assert len(sent_messages) == 2  # started, stopped
+
+
 @pytest.mark.usefixtures("instant_sleep", "running_bot", "sent_messages")
 def test_hands_its_own_state_to_the_client(module, monkeypatch, calls):
     seen = []
