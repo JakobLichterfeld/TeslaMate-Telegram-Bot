@@ -40,6 +40,11 @@ STOP_SIGNALS = (signal.SIGINT, signal.SIGTERM)
 EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
 
+# How long to wait for the broker to confirm both subscriptions before giving
+# up on the start, and how often to look while waiting
+MQTT_READY_TIMEOUT_SECONDS = 30
+MQTT_READY_POLL_SECONDS = 0.5
+
 # How long the loop waits between two checks
 POLL_INTERVAL_SECONDS = 30
 # How long a failed start waits before ending, so a restart policy backs off
@@ -139,7 +144,6 @@ class State:
         self._update_version: str | None = None
         self._episode = Episode(number=0, started_at=None)  # 0 means none yet
         self._notified_episode = 0
-        self._connection_failure = None
 
     def record_version(self, version: str) -> None:
         """Store the version announced by TeslaMate, normalising the unknowns."""
@@ -203,6 +207,27 @@ class State:
         with self._lock:
             self._notified_episode = episode
 
+
+class BrokerStatus:
+    """How the connection to the MQTT broker is doing.
+
+    Kept apart from State on purpose: that one holds what TeslaMate reports
+    about the car, this one holds what the broker reports about the transport.
+    The two change for different reasons and are read in different places.
+
+    Written from paho's network thread and read from the asyncio side, so the
+    fields are private and every access holds the lock.
+    """
+
+    def __init__(self, clock=time.monotonic):
+        self._lock = threading.Lock()
+        self._clock = clock
+        self._connection_failure = None
+        self._pending_subscriptions = set()
+        self._confirmed_subscriptions = 0
+        self._subscription_failure = None
+        self._unconfirmed_since = None
+
     def record_connection_failure(self, reason):
         """Report that the broker rejected the connection.
 
@@ -217,6 +242,86 @@ class State:
         """Return why the broker rejected the connection, or None."""
         with self._lock:
             return self._connection_failure
+
+    def reset_subscriptions(self):
+        """Forget what an earlier connection was waiting for.
+
+        A connection that drops between SUBSCRIBE and SUBACK leaves message
+        ids behind that will never be answered. Kept, they would make the
+        next, successful attempt wait for them and time out.
+
+        The clock starts here, in the moment of the reconnect, rather than
+        whenever the polling loop next looks - otherwise the grace would
+        stretch by up to one poll interval.
+        """
+        with self._lock:
+            self._pending_subscriptions.clear()
+            self._confirmed_subscriptions = 0
+            self._unconfirmed_since = self._clock()
+
+    def expect_subscription(self, message_id):
+        """Remember a subscribe request that still awaits its SUBACK."""
+        with self._lock:
+            self._pending_subscriptions.add(message_id)
+
+    def record_subscription_result(self, message_id, reason_codes):
+        """Take the broker's answer to one subscribe request.
+
+        A broker may accept the connection and still refuse a subscription,
+        an ACL being the usual reason. Without this the bot would look
+        healthy and never report anything.
+        """
+        refused = [code for code in reason_codes if code.is_failure]
+        with self._lock:
+            self._pending_subscriptions.discard(message_id)
+            if refused:
+                self._subscription_failure = ", ".join(str(code) for code in refused)
+            else:
+                self._confirmed_subscriptions += 1
+            if self._confirmed_subscriptions > 0 and not self._pending_subscriptions:
+                self._unconfirmed_since = None
+
+    def record_subscription_failure(self, reason):
+        """Report a subscribe request the client could not even send."""
+        with self._lock:
+            self._subscription_failure = reason
+
+    def subscription_failure(self):
+        """Return why a subscription was refused, or None."""
+        with self._lock:
+            return self._subscription_failure
+
+    def subscriptions_ready(self):
+        """Whether every subscribe request has been confirmed by the broker."""
+        with self._lock:
+            return self._confirmed_subscriptions > 0 and not self._pending_subscriptions
+
+    def unconfirmed_duration(self):
+        """How long the subscriptions have been unconfirmed, None if they are.
+
+        Measured from the reconnect itself, so the answer does not depend on
+        how often the caller happens to ask.
+        """
+        with self._lock:
+            if self._unconfirmed_since is None:
+                return None
+            return self._clock() - self._unconfirmed_since
+
+    def failure(self):
+        """Return why the broker connection is unusable, or None.
+
+        One question with one answer: both the refused connection and the
+        refused subscription leave the bot unable to hear anything, and every
+        caller has to react the same way.
+        """
+        with self._lock:
+            if self._connection_failure is not None:
+                return f"the broker rejected the connection: {self._connection_failure}"
+            if self._subscription_failure is not None:
+                return (
+                    f"the broker refused a subscription: {self._subscription_failure}"
+                )
+            return None
 
 
 def get_env_variable(var_name, default_value=None):
@@ -336,6 +441,7 @@ class MqttCallbackContext:
 
     config: Config
     state: State
+    status: BrokerStatus
 
 
 def on_connect(client, userdata, flags, reason_code, properties=None):  # noqa: ARG001  # pylint: disable=unused-argument
@@ -352,24 +458,49 @@ def on_connect(client, userdata, flags, reason_code, properties=None):  # noqa: 
     logger.debug("Connected with result code: %s", reason_code)
     if reason_code != 0:
         logger.error("Connection to the MQTT broker failed: %s", reason_code)
-        context.state.record_connection_failure(reason_code)
+        context.status.record_connection_failure(reason_code)
         return
 
     logger.info("Connected successfully to MQTT broker")
 
     # Subscribing in on_connect() means that if we lose the connection and
-    # reconnect then subscriptions will be renewed.
+    # reconnect then subscriptions will be renewed - starting over, because
+    # whatever the dropped connection was still waiting for will never come.
+    context.status.reset_subscriptions()
     logger.info("Subscribing to MQTT topics:")
 
-    client.subscribe(context.config.update_available_topic)
-    logger.info("Subscribed to MQTT topic: %s", context.config.update_available_topic)
+    for topic in (
+        context.config.update_available_topic,
+        context.config.update_version_topic,
+    ):
+        result, message_id = client.subscribe(topic)
+        if result != mqtt.MQTT_ERR_SUCCESS:
+            logger.error("Could not request a subscription to %s: %s", topic, result)
+            context.status.record_subscription_failure(
+                f"the subscribe request for {topic} failed with {result}"
+            )
+            return
+        # Requested, not granted: the broker answers with a SUBACK, and only
+        # on_subscribe knows whether it accepted.
+        context.status.expect_subscription(message_id)
+        logger.info("Requested subscription to MQTT topic: %s", topic)
 
-    client.subscribe(context.config.update_version_topic)
-    logger.info("Subscribed to MQTT topic: %s", context.config.update_version_topic)
 
-    logger.info("Subscribed to all MQTT topics.")
+def on_subscribe(client, userdata, mid, reason_code_list, properties=None):  # noqa: ARG001  # pylint: disable=unused-argument
+    """The callback for the broker's answer to a subscribe request.
 
-    logger.info("Waiting for MQTT messages...")
+    Signature is fixed by paho-mqtt; not every argument is used. A broker can
+    accept the connection and still refuse a subscription - an ACL that
+    forbids the topic is the usual reason - and without looking here the bot
+    would wait for messages that are never going to arrive.
+    """
+    context = userdata
+    refused = [code for code in reason_code_list if code.is_failure]
+    if refused:
+        logger.error("The MQTT broker refused a subscription: %s", refused)
+    else:
+        logger.info("Subscription confirmed by the MQTT broker.")
+    context.status.record_subscription_result(mid, reason_code_list)
 
 
 def on_message(client, userdata, msg):  # noqa: ARG001  # pylint: disable=unused-argument
@@ -427,6 +558,7 @@ def setup_mqtt_client(context):
     logger.info("Setting up the MQTT client...")
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, userdata=context)
     client.on_connect = on_connect
+    client.on_subscribe = on_subscribe
     client.on_message = on_message
 
     config = context.config
@@ -538,23 +670,73 @@ async def wait_for_stop(stop_requested, timeout):
         await asyncio.wait_for(stop_requested.wait(), timeout)
 
 
-async def run_until_stopped(bot, chat_id, state, stop_requested):
+async def wait_until_subscribed(status, stop_requested, clock=time.monotonic):
+    """Block until the broker has confirmed every subscription.
+
+    Reporting a successful start before this would be a guess: the connect
+    callback only asks, and a broker that accepts the connection can still
+    refuse the topics.
+
+    Returns whether the subscriptions were confirmed. False means a stop was
+    requested while waiting - the caller must not announce a running bot then,
+    because nothing has confirmed that it hears anything.
+    """
+    logger.info("Waiting for the MQTT broker to confirm the subscriptions...")
+    deadline = clock() + MQTT_READY_TIMEOUT_SECONDS
+
+    while not stop_requested.is_set():
+        failure = status.failure()
+        if failure is not None:
+            raise OSError(f"Error: Cannot listen for updates, {failure}.")
+
+        if status.subscriptions_ready():
+            logger.info("Subscribed to all MQTT topics.")
+            logger.info("Waiting for MQTT messages...")
+            return True
+
+        if clock() >= deadline:
+            raise OSError(
+                f"Error: The MQTT broker did not confirm the subscriptions within "
+                f"{MQTT_READY_TIMEOUT_SECONDS} seconds."
+            )
+
+        await wait_for_stop(stop_requested, MQTT_READY_POLL_SECONDS)
+
+    logger.info("Stopped before the subscriptions were confirmed.")
+    return False
+
+
+async def run_until_stopped(bot, chat_id, context, stop_requested):
     """Poll the state until the stop event is set.
 
     The event is owned by main(), which arms it for the whole lifecycle; here
     it only ends the wait between two rounds.
+
+    A reconnect starts the subscriptions over, so the bot can fall silent
+    again long after a successful start - by a refusal, or by a broker that
+    simply never answers. Both end the run, the second one after the same
+    grace the start allows. How long that has been going on is BrokerStatus's
+    answer, timed from the reconnect rather than from this loop noticing it.
     """
     while not stop_requested.is_set():
-        # The connect callback cannot end the bot itself, it runs in paho's
+        # The callbacks cannot end the bot themselves, they run in paho's
         # thread. Without this the loop would keep polling a state that
         # nobody updates any more.
-        connection_failure = state.connection_failure()
-        if connection_failure is not None:
+        failure = context.status.failure()
+        if failure is not None:
+            raise OSError(f"Error: Lost the updates, {failure}.")
+
+        unconfirmed_for = context.status.unconfirmed_duration()
+        if (
+            unconfirmed_for is not None
+            and unconfirmed_for >= MQTT_READY_TIMEOUT_SECONDS
+        ):
             raise OSError(
-                f"Error: The MQTT broker rejected the connection: {connection_failure}"
+                f"Error: The MQTT broker stopped confirming the subscriptions "
+                f"for more than {MQTT_READY_TIMEOUT_SECONDS} seconds."
             )
 
-        await check_state_and_send_messages(bot, chat_id, state)
+        await check_state_and_send_messages(bot, chat_id, context.state)
 
         logger.debug("Sleeping for %s seconds.", POLL_INTERVAL_SECONDS)
         await wait_for_stop(stop_requested, POLL_INTERVAL_SECONDS)
@@ -617,20 +799,28 @@ async def main():
         try:
             # Read once, here: unusable settings then take the same route as
             # any other startup failure instead of breaking the import.
-            context = MqttCallbackContext(config=Config.from_env(), state=State())
+            context = MqttCallbackContext(
+                config=Config.from_env(), state=State(), status=BrokerStatus()
+            )
             chat_id = context.config.telegram_chat_id
             client = setup_mqtt_client(context)
             bot = setup_telegram_bot(context.config)
-            start_message = (
-                "<b>"
-                "Teslamate Telegram Bot started ✅"
-                "</b>\n"
-                "and will notify as soon as a new SW version is available."
-            )
-            await send_telegram_message_to_chat_id(bot, chat_id, start_message)
 
+            # Only now can CONNACK and SUBACK be processed, so the start
+            # message waits until the broker has actually confirmed both
+            # subscriptions - announcing a working bot before that would be a
+            # guess.
             client.loop_start()
-            await run_until_stopped(bot, chat_id, context.state, stop_requested)
+            if await wait_until_subscribed(context.status, stop_requested):
+                start_message = (
+                    "<b>"
+                    "Teslamate Telegram Bot started ✅"
+                    "</b>\n"
+                    "and will notify as soon as a new SW version is available."
+                )
+                await send_telegram_message_to_chat_id(bot, chat_id, start_message)
+
+                await run_until_stopped(bot, chat_id, context, stop_requested)
         except OSError as e:
             logger.error(e)
             logger.info(

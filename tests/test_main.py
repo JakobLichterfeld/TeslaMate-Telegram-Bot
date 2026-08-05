@@ -41,6 +41,19 @@ class FakeBot:
         self.calls.append("bot.shutdown")
 
 
+class GrantedCode:
+    """A SUBACK reason code that means the broker accepted the topic."""
+
+    is_failure = False
+
+
+def confirmed_client(context, calls):
+    """A client whose broker confirms both subscriptions, as a healthy one does."""
+    context.status.expect_subscription(1)
+    context.status.record_subscription_result(1, [GrantedCode()])
+    return FakeClient(calls)
+
+
 @pytest.fixture(name="calls")
 def fixture_calls():
     return []
@@ -54,7 +67,9 @@ def raise_to_self(signal_number):
 @pytest.fixture(name="running_bot")
 def fixture_running_bot(module, monkeypatch, calls):
     """A setup that succeeds, with the main loop stopped by SIGTERM."""
-    monkeypatch.setattr(module, "setup_mqtt_client", lambda _context: FakeClient(calls))
+    monkeypatch.setattr(
+        module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
+    )
     monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: FakeBot(calls))
 
     async def stop(_bot, _chat_id, _state):
@@ -71,7 +86,9 @@ def test_stops_on_a_signal(module, monkeypatch, sent_messages, calls, signal_num
     The signal is really sent to this process: without a handler SIGTERM
     would end the test run outright, which is exactly what it does to the bot.
     """
-    monkeypatch.setattr(module, "setup_mqtt_client", lambda _context: FakeClient(calls))
+    monkeypatch.setattr(
+        module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
+    )
     monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: FakeBot(calls))
 
     async def stop(_bot, _chat_id, _state):
@@ -90,7 +107,9 @@ def test_polls_the_state_in_a_loop(module, monkeypatch, sent_messages, calls):
     # The wait between two rounds is a real one now: it ends early on a
     # signal, so shorten it instead of sitting out the poll interval.
     monkeypatch.setattr(module, "POLL_INTERVAL_SECONDS", 0.01)
-    monkeypatch.setattr(module, "setup_mqtt_client", lambda _context: FakeClient(calls))
+    monkeypatch.setattr(
+        module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
+    )
     monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: FakeBot(calls))
     checks = []
 
@@ -127,7 +146,7 @@ def test_stops_when_the_broker_rejects_the_connection(
 
     def setup(context):
         # paho reports the rejection through the state, as on_connect does.
-        context.state.record_connection_failure("Not authorized")
+        context.status.record_connection_failure("Not authorized")
         return FakeClient(calls)
 
     monkeypatch.setattr(module, "setup_mqtt_client", setup)
@@ -138,10 +157,13 @@ def test_stops_when_the_broker_rejects_the_connection(
 
     monkeypatch.setattr(module, "check_state_and_send_messages", never_called)
 
-    asyncio.run(module.main())
+    status = asyncio.run(module.main())
 
     assert calls == ["loop_start", "disconnect", "loop_stop", "bot.shutdown"]
-    assert len(sent_messages) == 2  # started, stopped
+    # No start message: the rejection is known before the bot claims to run.
+    assert len(sent_messages) == 1
+    assert "stopped" in sent_messages[0][1]
+    assert status == module.EXIT_FAILURE
 
 
 @pytest.mark.usefixtures(
@@ -153,7 +175,7 @@ def test_hands_a_context_of_its_own_to_the_client(module, monkeypatch, calls):
 
     def setup(context):
         seen.append(context)
-        return FakeClient(calls)
+        return confirmed_client(context, calls)
 
     monkeypatch.setattr(module, "setup_mqtt_client", setup)
 
@@ -184,7 +206,9 @@ def test_survives_an_unreachable_broker(module, monkeypatch, sent_messages, call
 def test_disconnects_the_client_when_the_telegram_setup_fails(
     module, monkeypatch, sent_messages, calls
 ):
-    monkeypatch.setattr(module, "setup_mqtt_client", lambda _context: FakeClient(calls))
+    monkeypatch.setattr(
+        module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
+    )
 
     def missing_token(_config):
         raise OSError("Error: Please set the environment variable TELEGRAM_BOT_API_KEY")
@@ -212,7 +236,7 @@ def test_a_failing_goodbye_does_not_hide_the_original_error(module, monkeypatch,
         asyncio.run(module.main())
 
     # Everything was still shut down before the exception left main().
-    assert calls == ["disconnect", "loop_stop", "bot.shutdown"]
+    assert calls == ["loop_start", "disconnect", "loop_stop", "bot.shutdown"]
 
 
 @pytest.mark.usefixtures("configured_env", "instant_backoff", "running_bot")
@@ -241,7 +265,9 @@ def test_a_failing_release_does_not_take_down_the_shutdown(module, monkeypatch, 
         async def shutdown(self):
             raise NetworkError("Telegram is unreachable")
 
-    monkeypatch.setattr(module, "setup_mqtt_client", lambda _context: FakeClient(calls))
+    monkeypatch.setattr(
+        module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
+    )
     monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: BrokenBot(calls))
 
     async def stop(_bot, _chat_id, _state):
@@ -258,7 +284,9 @@ def test_a_failing_release_does_not_take_down_the_shutdown(module, monkeypatch, 
 def test_a_signal_during_the_backoff_ends_the_wait(module, monkeypatch, calls):
     """`docker stop` during the backoff after a failed start must be heard."""
     monkeypatch.setattr(module, "ERROR_BACKOFF_SECONDS", 5)
-    monkeypatch.setattr(module, "setup_mqtt_client", lambda _context: FakeClient(calls))
+    monkeypatch.setattr(
+        module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
+    )
 
     def fail_after_the_signal(_config):
         raise_to_self(signal.SIGTERM)
@@ -284,7 +312,9 @@ def test_restores_signal_handlers_it_found(module, monkeypatch, calls):
     def previous_handler(_number, _frame):
         pass  # pragma: no cover - never invoked, only registered
 
-    monkeypatch.setattr(module, "setup_mqtt_client", lambda _context: FakeClient(calls))
+    monkeypatch.setattr(
+        module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
+    )
     monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: FakeBot(calls))
 
     async def stop(_bot, _chat_id, _state):
@@ -318,3 +348,203 @@ def test_the_entry_point_exits_with_the_status_of_the_run(module, monkeypatch, s
 
     assert started == ["main"]
     assert exit_info.value.code == status
+
+
+class RefusedCode:
+    """A SUBACK reason code that means the broker denied the topic."""
+
+    is_failure = True
+
+    def __str__(self):
+        return "Not authorized"
+
+
+@pytest.mark.usefixtures("configured_env", "instant_backoff")
+def test_does_not_claim_to_run_when_a_subscription_is_refused(
+    module, monkeypatch, sent_messages, calls
+):
+    """An ACL may allow the connection and forbid the topic.
+
+    The bot would then look healthy and never notify, so the refusal has to
+    end the start instead of being announced as success.
+    """
+
+    def setup(context):
+        context.status.expect_subscription(1)
+        context.status.record_subscription_result(1, [RefusedCode()])
+        return FakeClient(calls)
+
+    monkeypatch.setattr(module, "setup_mqtt_client", setup)
+    monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: FakeBot(calls))
+
+    async def never_called(_bot, _chat_id, _state):
+        raise AssertionError("the loop must not get this far")
+
+    monkeypatch.setattr(module, "check_state_and_send_messages", never_called)
+
+    status = asyncio.run(module.main())
+
+    assert [text for _, text in sent_messages if "started" in text] == []
+    assert status == module.EXIT_FAILURE
+    assert calls == ["loop_start", "disconnect", "loop_stop", "bot.shutdown"]
+
+
+@pytest.mark.usefixtures("configured_env", "instant_backoff")
+def test_gives_up_when_no_suback_arrives(module, monkeypatch, sent_messages, calls):
+    """A broker that never answers must not leave the bot hanging."""
+    monkeypatch.setattr(module, "MQTT_READY_TIMEOUT_SECONDS", 0)
+    monkeypatch.setattr(module, "setup_mqtt_client", lambda _context: FakeClient(calls))
+    monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: FakeBot(calls))
+
+    status = asyncio.run(module.main())
+
+    assert [text for _, text in sent_messages if "started" in text] == []
+    assert status == module.EXIT_FAILURE
+
+
+class LateBroker:
+    """A broker status that reports readiness only on the second look."""
+
+    def __init__(self):
+        self.checks = 0
+
+    def failure(self):
+        return None
+
+    def subscriptions_ready(self):
+        self.checks += 1
+        return self.checks > 1
+
+
+def test_waits_for_a_suback_that_takes_a_moment(module, monkeypatch):
+    """The confirmation rarely arrives before the first look."""
+    monkeypatch.setattr(module, "MQTT_READY_POLL_SECONDS", 0)
+    state = LateBroker()
+
+    async def wait():
+        await module.wait_until_subscribed(state, asyncio.Event())
+
+    asyncio.run(wait())
+
+    assert state.checks == 2
+
+
+def test_the_loop_stops_when_the_connection_is_lost_later(module, context):
+    """A reconnect can be rejected long after the start succeeded."""
+    context.status.record_connection_failure("Not authorized")
+
+    async def run():
+        await module.run_until_stopped(None, 42, context, asyncio.Event())
+
+    with pytest.raises(OSError, match="rejected the connection"):
+        asyncio.run(run())
+
+
+@pytest.mark.usefixtures("configured_env", "instant_backoff")
+def test_does_not_claim_to_run_when_stopped_while_waiting(
+    module, monkeypatch, sent_messages, calls
+):
+    """A stop during the wait leaves the subscriptions unconfirmed.
+
+    Announcing a running bot then would claim something nobody confirmed.
+    """
+
+    def setup(_context):
+        raise_to_self(signal.SIGTERM)  # `docker stop` while the SUBACK is due
+        return FakeClient(calls)
+
+    monkeypatch.setattr(module, "setup_mqtt_client", setup)
+    monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: FakeBot(calls))
+
+    async def never_called(_bot, _chat_id, _state):
+        raise AssertionError("the loop must not get this far")
+
+    monkeypatch.setattr(module, "check_state_and_send_messages", never_called)
+
+    status = asyncio.run(module.main())
+
+    assert [text for _, text in sent_messages if "started" in text] == []
+    assert status == module.EXIT_SUCCESS  # a requested stop, not a failure
+    assert calls == ["loop_start", "disconnect", "loop_stop", "bot.shutdown"]
+
+
+def test_the_loop_stops_when_a_later_subscription_is_refused(module, context):
+    """A reconnect can be answered with an ACL denial long after the start."""
+    context.status.record_subscription_failure("Not authorized")
+
+    async def run():
+        await module.run_until_stopped(None, 42, context, asyncio.Event())
+
+    with pytest.raises(OSError, match="refused a subscription"):
+        asyncio.run(run())
+
+
+class Clock:
+    """A hand-cranked clock, so a timeout costs no real time."""
+
+    def __init__(self):
+        self.now = 1000.0
+
+    def __call__(self):
+        return self.now
+
+    def advance(self, seconds):
+        self.now += seconds
+
+
+def reconnected_context(module, config, state, clock):
+    """A context whose broker just reconnected and owes two SUBACKs."""
+    status = module.BrokerStatus(clock=clock)
+    # The grace is timed from here, not from the loop noticing.
+    status.reset_subscriptions()
+    status.expect_subscription(1)
+    return module.MqttCallbackContext(config=config, state=state, status=status)
+
+
+def test_the_loop_gives_up_when_a_reconnect_is_never_confirmed(
+    module, config, state, monkeypatch
+):
+    """A reconnect starts the subscriptions over; a silent broker leaves the
+    bot deaf without anyone refusing anything."""
+    monkeypatch.setattr(module, "POLL_INTERVAL_SECONDS", 0)
+    clock = Clock()
+    context = reconnected_context(module, config, state, clock)
+
+    async def check(_bot, _chat_id, _state):
+        clock.advance(module.MQTT_READY_TIMEOUT_SECONDS)
+
+    monkeypatch.setattr(module, "check_state_and_send_messages", check)
+
+    async def run():
+        await module.run_until_stopped(None, 42, context, asyncio.Event())
+
+    with pytest.raises(OSError, match="stopped confirming"):
+        asyncio.run(run())
+
+
+def test_a_confirmed_reconnect_clears_the_deadline(module, config, state, monkeypatch):
+    """Once the broker answers again, the grace starts over."""
+    monkeypatch.setattr(module, "POLL_INTERVAL_SECONDS", 0)
+    clock = Clock()
+    context = reconnected_context(module, config, state, clock)
+    rounds = []
+
+    async def check(_bot, _chat_id, _state):
+        rounds.append(1)
+        if len(rounds) == 1:
+            # Late, but within the grace: the SUBACK arrives.
+            clock.advance(module.MQTT_READY_TIMEOUT_SECONDS - 1)
+            context.status.record_subscription_result(1, [GrantedCode()])
+        else:
+            clock.advance(module.MQTT_READY_TIMEOUT_SECONDS)
+            raise KeyboardInterrupt  # ends the loop without a failure
+
+    monkeypatch.setattr(module, "check_state_and_send_messages", check)
+
+    async def run():
+        await module.run_until_stopped(None, 42, context, asyncio.Event())
+
+    with pytest.raises(KeyboardInterrupt):
+        asyncio.run(run())
+
+    assert len(rounds) == 2  # the second round did not run into the timeout

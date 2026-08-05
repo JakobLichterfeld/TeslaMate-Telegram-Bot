@@ -135,7 +135,9 @@ def test_ignores_unrelated_topics(module, context, message):
 
 def test_contexts_do_not_leak_into_each_other(module, config, message):
     """Two cars, two contexts: neither the topics nor the state are shared."""
-    first = module.MqttCallbackContext(config=config, state=module.State())
+    first = module.MqttCallbackContext(
+        config=config, state=module.State(), status=module.BrokerStatus()
+    )
     second_config = module.Config(
         car_id=2,
         namespace="garage",
@@ -146,7 +148,9 @@ def test_contexts_do_not_leak_into_each_other(module, config, message):
         telegram_token=config.telegram_token,
         telegram_chat_id=config.telegram_chat_id,
     )
-    second = module.MqttCallbackContext(config=second_config, state=module.State())
+    second = module.MqttCallbackContext(
+        config=second_config, state=module.State(), status=module.BrokerStatus()
+    )
 
     assert first.config.update_version_topic != second.config.update_version_topic
 

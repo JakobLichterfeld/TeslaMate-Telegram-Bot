@@ -34,10 +34,16 @@ def fixture_config():
     )
 
 
+@pytest.fixture(name="status")
+def fixture_status():
+    """How the broker connection is doing, as the callbacks report it."""
+    return bot.BrokerStatus()
+
+
 @pytest.fixture(name="context")
-def fixture_context(config, state):
+def fixture_context(config, state, status):
     """What paho hands to the callbacks as user data."""
-    return bot.MqttCallbackContext(config=config, state=state)
+    return bot.MqttCallbackContext(config=config, state=state, status=status)
 
 
 @pytest.fixture(name="configured_env")
