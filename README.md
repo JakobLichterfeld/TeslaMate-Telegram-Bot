@@ -139,18 +139,18 @@ To enable the TeslaMate Telegram Bot service, your config could look like this (
   ...
 }:
 {
-imports = [ inputs.teslamate-telegram-bot.nixosModules.default ];
+  imports = [ inputs.teslamate-telegram-bot.nixosModules.default ];
 
-config = services.teslamate-telegram-bot = {
-      enable = true;
-      secretsFile = "/run/secrets/teslamate-telegram-bot.env"; # you can use agenix for sure: config.age.secrets.teslamate-telegram-bot.path;
-      # the secrets file must contain at least:
-      #  - `TELEGRAM_BOT_API_KEY=secret_api_key`
-      #  - `TELEGRAM_BOT_CHAT_ID=secret_chat_id`
+  config.services.teslamate-telegram-bot = {
+    enable = true;
+    secretsFile = "/run/secrets/teslamate-telegram-bot.env"; # you can use agenix for sure: config.age.secrets.teslamate-telegram-bot.path;
+    # the secrets file must contain at least:
+    #  - `TELEGRAM_BOT_API_KEY=secret_api_key`
+    #  - `TELEGRAM_BOT_CHAT_ID=secret_chat_id`
 
-      # Optional values:
-      #  - `MQTT_BROKER_PASSWORD=password` # only needed when broker has authentication enabled
-    };
+    # Optional values:
+    #  - `MQTT_BROKER_PASSWORD=password` # only needed when broker has authentication enabled
+  };
 }
 ```
 
