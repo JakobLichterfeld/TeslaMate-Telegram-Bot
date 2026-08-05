@@ -24,6 +24,10 @@ MQTT_BROKER_USERNAME_DEFAULT = ""
 MQTT_BROKER_PASSWORD_DEFAULT = ""
 MQTT_NAMESPACE_DEFAULT = ""
 
+# The only payloads TeslaMate publishes on the availability topic. Matching
+# strictly keeps damaged input from being read as "no update available".
+AVAILABILITY_PAYLOADS = {"true": True, "false": False}
+
 # How long the loop waits between two checks
 POLL_INTERVAL_SECONDS = 30
 # How long an announced update may stay without a version before it is reported
@@ -259,15 +263,32 @@ def on_message(client, userdata, msg):  # noqa: ARG001  # pylint: disable=unused
     the State instance handed to the client in setup_mqtt_client.
     """
     state = userdata
-    logger.debug("Received message: %s %s", msg.topic, msg.payload.decode())
+    try:
+        payload = msg.payload.decode()
+    except UnicodeDecodeError:
+        # Damaged bytes must not escape into paho's network thread, where an
+        # exception ends the loop that feeds this bot.
+        logger.warning(
+            "Ignoring undecodable payload of %s bytes on %s",
+            len(msg.payload),
+            msg.topic,
+        )
+        return
+
+    logger.debug("Received message: %s %s", msg.topic, payload)
 
     if msg.topic == TESLAMATE_MQTT_TOPIC_UPDATE_VERSION:
-        version = msg.payload.decode()
-        state.record_version(version)
-        logger.info("Update to version %s available.", version)
+        state.record_version(payload)
+        logger.info("Update to version %s available.", payload)
 
     if msg.topic == TESLAMATE_MQTT_TOPIC_UPDATE_AVAILABLE:
-        available = msg.payload.decode() == "true"
+        if payload not in AVAILABILITY_PAYLOADS:
+            # Anything else is damaged input. Reading it as "false" would end
+            # the episode and discard the version, so it is dropped instead.
+            logger.warning("Ignoring unexpected payload on %s: %r", msg.topic, payload)
+            return
+
+        available = AVAILABILITY_PAYLOADS[payload]
         state.record_availability(available)
         if available:
             logger.info(

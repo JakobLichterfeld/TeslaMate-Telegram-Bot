@@ -22,12 +22,16 @@ def fixture_state():
 
 @pytest.fixture(name="message")
 def fixture_message():
-    """Build an MQTT message as paho hands it to the callbacks."""
+    """Build an MQTT message as paho hands it to the callbacks.
+
+    The payload is real bytes, so decoding behaves like it does in
+    production - including failing on bytes that are not valid UTF-8.
+    """
 
     def build(topic, payload):
         return types.SimpleNamespace(
             topic=topic,
-            payload=types.SimpleNamespace(decode=lambda: payload),
+            payload=payload if isinstance(payload, bytes) else payload.encode(),
         )
 
     return build
