@@ -2,6 +2,7 @@
 and sends them to a Telegram chat."""
 
 import asyncio
+import html
 import logging
 import os
 import threading
@@ -364,12 +365,15 @@ async def check_state_and_send_messages(bot, chat_id, state):
             "A new SW update to version: %s for your Tesla is available!",
             notification.version,
         )
+        # The version comes from MQTT and goes into a message Telegram parses
+        # as HTML, where a bare &, < or > is a parse error - and that error
+        # would arrive as the TelegramError that ends the bot.
         message_text = (
             "<b>"
             "SW Update 🎁"
             "</b>\n"
             "A new SW update to version: "
-            + notification.version
+            + html.escape(notification.version)
             + " for your Tesla is available!"
         )
 

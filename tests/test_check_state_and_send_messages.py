@@ -107,6 +107,19 @@ def test_notifies_again_for_a_new_episode(module, state, sent_messages):
     assert "2026.4.2" in sent_messages[1][1]
 
 
+def test_escapes_the_version_for_telegrams_html_parser(module, state, sent_messages):
+    """An unescaped & or < is a parse error, which Telegram reports as an
+    error that would take the bot down."""
+    state.record_version("2026.4.1 <beta> & more")
+    state.record_availability(True)
+
+    check(module, state)
+
+    _, text = sent_messages[0]
+    assert "2026.4.1 &lt;beta&gt; &amp; more" in text
+    assert "<beta>" not in text
+
+
 def test_stays_quiet_without_an_update(module, state, sent_messages):
     check(module, state)
 

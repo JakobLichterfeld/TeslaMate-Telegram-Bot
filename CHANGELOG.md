@@ -59,6 +59,7 @@
 - fix: release the bot's resources even if the goodbye fails
 - fix: end the bot when the broker rejects the connection
 - fix: ignore malformed MQTT payloads instead of acting on them
+- fix: escape MQTT versions before embedding them in Telegram HTML
 
 ## [1.0.1] - 2026-05-29
 
