@@ -153,10 +153,21 @@ class State:
 
 
 def get_env_variable(var_name, default_value=None):
-    """Get the environment variable or return a default value"""
+    """Get the environment variable or return a default value
+
+    Only whether the variable is set is logged, never its content: two of
+    them carry the Telegram token and the MQTT password, and debug logs end
+    up in files, `docker logs` and forwarders. The values that are safe to
+    see - broker, port, namespace, car - are logged where they are used.
+    """
     logger.debug("Getting environment variable %s", var_name)
-    var_value = os.getenv(var_name, default_value)
-    logger.debug("Environment variable %s: %s", var_name, var_value)
+    raw_value = os.getenv(var_name)
+    var_value = raw_value if raw_value is not None else default_value
+    logger.debug(
+        "Environment variable %s is %s",
+        var_name,
+        "set" if raw_value is not None else "not set, using the default",
+    )
     if var_value is None and var_name in [TELEGRAM_BOT_API_KEY, TELEGRAM_BOT_CHAT_ID]:
         error_message_get_env_variable = (
             f"Error: Please set the environment variable {var_name} and try again."

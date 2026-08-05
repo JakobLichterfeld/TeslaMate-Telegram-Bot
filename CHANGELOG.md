@@ -55,6 +55,7 @@
 - fix: keep a failing goodbye from hiding why the bot stopped
 - fix: release the bot's resources instead of calling the close API
 - fix: never lose an update that arrives while notifying
+- fix(security): never log secret environment variable values
 
 ## [1.0.1] - 2026-05-29
 
