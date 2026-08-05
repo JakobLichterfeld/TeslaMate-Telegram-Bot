@@ -62,6 +62,12 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
+# httpx logs every request at INFO, including the URL - and the Telegram API
+# carries the bot token in the path. At the root level set above that would
+# put the token into the log on every message sent. Silencing the logger
+# itself also holds when someone raises the root level to DEBUG.
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 # Module logger, attached to the root handler configured above
 logger = logging.getLogger(__name__)
 
