@@ -53,6 +53,7 @@
 - build(dependabot): stop raising the build-system floors
 - build(uv): make image builds reproducible
 - ci: build the Nix package on every commit
+- ci(nix): instantiate the NixOS module in a test configuration
 
 ### Bug Fixes
 
