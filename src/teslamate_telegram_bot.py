@@ -570,10 +570,25 @@ def setup_mqtt_client(context):
     return client
 
 
-def setup_telegram_bot(config):
-    """Setup the Telegram bot"""
+async def setup_telegram_bot(config):
+    """Setup the Telegram bot
+
+    Constructing the Bot builds its HTTP client but leaves it outside the
+    lifecycle python-telegram-bot documents: initialize() is the half that
+    pairs with shutdown(), and without it the shutdown in shut_down() returns
+    right away and the client stays open. It also asks Telegram who this bot
+    is, so a rejected token is known here instead of at the first message.
+    """
     logger.info("Setting up the Telegram bot...")
     bot = Bot(config.telegram_token)
+    try:
+        await bot.initialize()
+    except TelegramError:
+        # Half open is open: the request objects are initialized before the
+        # call that identifies the bot, and a bot that never reaches the
+        # caller is a bot nobody else can release.
+        await bot.shutdown()
+        raise
     logger.info("Connected to Telegram bot successfully.")
     return bot
 
@@ -770,7 +785,8 @@ async def shut_down(client, bot, chat_id):
         logger.error("Could not send the stop message: %s", telegram_error)
     finally:
         # Releasing the resources must not depend on the goodbye getting
-        # through. shutdown() frees the local request objects; close() would
+        # through. shutdown() closes what setup_telegram_bot's initialize()
+        # opened - the local HTTP client, nothing remote; close() would
         # be the API call for moving a bot between servers, which Telegram
         # answers with 429 in the first ten minutes after a start - every
         # restart of a short-lived container.
@@ -804,7 +820,7 @@ async def main():
             )
             chat_id = context.config.telegram_chat_id
             client = setup_mqtt_client(context)
-            bot = setup_telegram_bot(context.config)
+            bot = await setup_telegram_bot(context.config)
 
             # Only now can CONNACK and SUBACK be processed, so the start
             # message waits until the broker has actually confirmed both

@@ -68,6 +68,7 @@
 - fix(security): keep the bot token out of the log
 - fix: report a failed start with a non-zero exit code
 - fix: confirm the subscriptions before reporting a running bot
+- fix: initialize the Telegram bot so its shutdown actually releases it
 
 ## [1.0.1] - 2026-05-29
 

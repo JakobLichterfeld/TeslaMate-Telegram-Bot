@@ -41,6 +41,15 @@ class FakeBot:
         self.calls.append("bot.shutdown")
 
 
+def bot_setup(bot):
+    """A setup_telegram_bot stand-in handing back an already prepared bot."""
+
+    async def setup(_config):
+        return bot
+
+    return setup
+
+
 class GrantedCode:
     """A SUBACK reason code that means the broker accepted the topic."""
 
@@ -70,7 +79,7 @@ def fixture_running_bot(module, monkeypatch, calls):
     monkeypatch.setattr(
         module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
     )
-    monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: FakeBot(calls))
+    monkeypatch.setattr(module, "setup_telegram_bot", bot_setup(FakeBot(calls)))
 
     async def stop(_bot, _chat_id, _state):
         raise_to_self(signal.SIGTERM)
@@ -89,7 +98,7 @@ def test_stops_on_a_signal(module, monkeypatch, sent_messages, calls, signal_num
     monkeypatch.setattr(
         module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
     )
-    monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: FakeBot(calls))
+    monkeypatch.setattr(module, "setup_telegram_bot", bot_setup(FakeBot(calls)))
 
     async def stop(_bot, _chat_id, _state):
         raise_to_self(signal_number)
@@ -110,7 +119,7 @@ def test_polls_the_state_in_a_loop(module, monkeypatch, sent_messages, calls):
     monkeypatch.setattr(
         module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
     )
-    monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: FakeBot(calls))
+    monkeypatch.setattr(module, "setup_telegram_bot", bot_setup(FakeBot(calls)))
     checks = []
 
     async def check(_bot, _chat_id, _state):
@@ -150,7 +159,7 @@ def test_stops_when_the_broker_rejects_the_connection(
         return FakeClient(calls)
 
     monkeypatch.setattr(module, "setup_mqtt_client", setup)
-    monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: FakeBot(calls))
+    monkeypatch.setattr(module, "setup_telegram_bot", bot_setup(FakeBot(calls)))
 
     async def never_called(_bot, _chat_id, _state):
         raise AssertionError("the loop must not get this far")
@@ -210,7 +219,7 @@ def test_disconnects_the_client_when_the_telegram_setup_fails(
         module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
     )
 
-    def missing_token(_config):
+    async def missing_token(_config):
         raise OSError("Error: Please set the environment variable TELEGRAM_BOT_API_KEY")
 
     monkeypatch.setattr(module, "setup_telegram_bot", missing_token)
@@ -268,7 +277,7 @@ def test_a_failing_release_does_not_take_down_the_shutdown(module, monkeypatch, 
     monkeypatch.setattr(
         module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
     )
-    monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: BrokenBot(calls))
+    monkeypatch.setattr(module, "setup_telegram_bot", bot_setup(BrokenBot(calls)))
 
     async def stop(_bot, _chat_id, _state):
         raise_to_self(signal.SIGTERM)
@@ -288,7 +297,7 @@ def test_a_signal_during_the_backoff_ends_the_wait(module, monkeypatch, calls):
         module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
     )
 
-    def fail_after_the_signal(_config):
+    async def fail_after_the_signal(_config):
         raise_to_self(signal.SIGTERM)
         raise OSError("Error: Please set the environment variable TELEGRAM_BOT_API_KEY")
 
@@ -315,7 +324,7 @@ def test_restores_signal_handlers_it_found(module, monkeypatch, calls):
     monkeypatch.setattr(
         module, "setup_mqtt_client", lambda context: confirmed_client(context, calls)
     )
-    monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: FakeBot(calls))
+    monkeypatch.setattr(module, "setup_telegram_bot", bot_setup(FakeBot(calls)))
 
     async def stop(_bot, _chat_id, _state):
         raise_to_self(signal.SIGTERM)
@@ -375,7 +384,7 @@ def test_does_not_claim_to_run_when_a_subscription_is_refused(
         return FakeClient(calls)
 
     monkeypatch.setattr(module, "setup_mqtt_client", setup)
-    monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: FakeBot(calls))
+    monkeypatch.setattr(module, "setup_telegram_bot", bot_setup(FakeBot(calls)))
 
     async def never_called(_bot, _chat_id, _state):
         raise AssertionError("the loop must not get this far")
@@ -394,7 +403,7 @@ def test_gives_up_when_no_suback_arrives(module, monkeypatch, sent_messages, cal
     """A broker that never answers must not leave the bot hanging."""
     monkeypatch.setattr(module, "MQTT_READY_TIMEOUT_SECONDS", 0)
     monkeypatch.setattr(module, "setup_mqtt_client", lambda _context: FakeClient(calls))
-    monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: FakeBot(calls))
+    monkeypatch.setattr(module, "setup_telegram_bot", bot_setup(FakeBot(calls)))
 
     status = asyncio.run(module.main())
 
@@ -454,7 +463,7 @@ def test_does_not_claim_to_run_when_stopped_while_waiting(
         return FakeClient(calls)
 
     monkeypatch.setattr(module, "setup_mqtt_client", setup)
-    monkeypatch.setattr(module, "setup_telegram_bot", lambda _config: FakeBot(calls))
+    monkeypatch.setattr(module, "setup_telegram_bot", bot_setup(FakeBot(calls)))
 
     async def never_called(_bot, _chat_id, _state):
         raise AssertionError("the loop must not get this far")
