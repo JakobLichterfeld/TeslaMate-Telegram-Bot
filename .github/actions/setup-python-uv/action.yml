@@ -1,7 +1,17 @@
 name: Set up Python and uv
 description: >
-  Installs the Python version the project targets, plus uv. Shared by the
-  Python workflows so the version and the pinned action SHA live in one place.
+  Installs a Python version the project supports, plus uv. Shared by the
+  Python workflows so the default version and the pinned action SHA live in
+  one place.
+
+inputs:
+  python-version:
+    description: >
+      Which Python to install. The default is the newest supported version,
+      the one the container image ships; jobs that also cover the floor of
+      requires-python in pyproject.toml pass that one instead.
+    required: false
+    default: "3.14"
 
 runs:
   using: composite
@@ -9,7 +19,7 @@ runs:
     - name: Set up Python
       uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
-        python-version: "3.14"
+        python-version: ${{ inputs.python-version }}
 
     - name: Install uv
       shell: bash

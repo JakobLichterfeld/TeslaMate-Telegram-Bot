@@ -9,12 +9,20 @@ permissions:
 jobs:
   install:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # A floor that cannot be installed is a floor the metadata should not
+        # be claiming.
+        python-version: ["3.13", "3.14"]
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python and uv
         uses: ./.github/actions/setup-python-uv
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - name: Install the package
         # Exercises the build backend, so the pinned build-system requirements
