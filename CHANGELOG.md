@@ -55,6 +55,7 @@
 - ci: build the Nix package on every commit
 - ci(nix): instantiate the NixOS module in a test configuration
 - ci: test both ends of the supported Python range
+- ci: pin uv instead of installing whatever PyPI serves
 
 ### Bug Fixes
 
