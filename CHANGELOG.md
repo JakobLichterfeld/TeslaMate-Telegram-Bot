@@ -57,6 +57,7 @@
 - ci(nix): instantiate the NixOS module in a test configuration
 - ci: test both ends of the supported Python range
 - ci: pin uv instead of installing whatever PyPI serves
+- build(deps): update flake.lock
 
 ### Bug Fixes
 
