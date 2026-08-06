@@ -20,6 +20,7 @@
 - docs: state that this is an unofficial community tool
 - docs(nix): describe the Telegram secrets correctly
 - docs(nix): correct the NixOS module example in the README
+- docs(docker): stop publishing a port the bot never opens
 
 #### Build, CI, internal
 

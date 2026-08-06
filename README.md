@@ -75,8 +75,6 @@ This setup is recommended only if you are running TeslaMate Telegram Bot **on yo
          # - MQTT_NAMESPACE=namespace # optional, only needed when you specified MQTT_NAMESPACE on your TeslaMate installation
          - TELEGRAM_BOT_API_KEY=secret_api_key
          - TELEGRAM_BOT_CHAT_ID=secret_chat_id
-       ports:
-         - 1883
    ```
 
 2. Build and start the docker container with `docker compose up`. To run the containers in the background add the `-d` flag:
