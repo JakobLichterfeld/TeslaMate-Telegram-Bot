@@ -63,24 +63,18 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    assertions = [
-      {
-        assertion = config.services.teslamate.enable;
-        message = "teslamate-telegram-bot cannot be enabled when teslamate is not enabled.";
-      }
-      {
-        assertion = config.services.mosquitto.enable;
-        message = "teslamate-telegram-bot cannot be enabled when mosquitto is not enabled.";
-      }
-    ];
-
     systemd.services.teslamate-telegram-bot = {
       description = "TeslaMate Telegram Bot";
+      # Broker and TeslaMate may run on other hosts, so their presence here is
+      # not asserted; when they do run locally, start after them. TeslaMate is
+      # a foreign module, so its option only exists when that flake is
+      # imported — hence the `or false`.
       after = [
-        "network.target"
-        "mosquitto.service"
-        "teslamate.service"
-      ];
+        "network-online.target"
+      ]
+      ++ lib.optional config.services.mosquitto.enable "mosquitto.service"
+      ++ lib.optional (config.services.teslamate.enable or false) "teslamate.service";
+      wants = [ "network-online.target" ];
       wantedBy = lib.mkIf cfg.autoStart [ "multi-user.target" ];
 
       serviceConfig = {

@@ -44,11 +44,15 @@ jobs:
         # without this job the breakage only surfaces for NixOS users.
         run: nix build .#default --no-link --print-build-logs
 
-      - name: Instantiate the NixOS module in a test configuration
+      - name: Instantiate the NixOS module in the test configurations
         # Building the package says nothing about nix/module.nix: it is only
         # ever evaluated on a machine that enables the service, which is
         # nowhere in this repository. Instantiating is enough - the system is
         # never built, let alone booted. After the package, which the unit it
         # renders points at: a package that does not build is reported as
-        # that, not as a module that does not evaluate.
-        run: nix build .#nixosConfigurations.test.config.system.build.toplevel --dry-run
+        # that, not as a module that does not evaluate. Both broker
+        # placements, because the module renders different unit orderings for
+        # a local and a remote broker.
+        run: |
+          nix build .#nixosConfigurations.test.config.system.build.toplevel --dry-run
+          nix build .#nixosConfigurations.test-remote.config.system.build.toplevel --dry-run

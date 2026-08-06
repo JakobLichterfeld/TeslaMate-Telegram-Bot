@@ -1,19 +1,10 @@
-# The smallest machine that switches this service on, so `nix build
-# .#nixosConfigurations.test.config.system.build.toplevel --dry-run` has
-# something to instantiate module.nix with. It is never booted: what it proves
-# is that the module still evaluates against nixpkgs and still renders its unit.
-{ lib, ... }:
+# The local-broker half of the test pair (see test-configuration-remote.nix):
+# broker and bot on the same machine. Never booted: what it proves is that the
+# module still evaluates against nixpkgs, still renders its unit, and still
+# orders that unit after the local broker.
+{ config, lib, ... }:
 {
-  # A stub, not TeslaMate: module.nix asserts on this option and nixpkgs
-  # declares it nowhere, so something has to. Declaring the one option here
-  # keeps the test on this repository's module instead of tying its lock to a
-  # foreign flake that could break this check by changing.
-  options.services.teslamate.enable = lib.mkEnableOption "TeslaMate test stub";
-
   config = {
-    # What the one remaining assertion in module.nix requires, stubbed above.
-    services.teslamate.enable = true;
-
     # The broker the bot below is pointed at, listening on a port nothing
     # defaults to: the settings the bot is given have to be the settings that
     # reach it, so they are worth nothing if they are the defaults on both
@@ -46,12 +37,13 @@
       };
     };
 
-    # What a machine needs to evaluate to a toplevel, none of it ever used.
-    boot.loader.grub.enable = false;
-    fileSystems."/" = {
-      device = "/dev/null";
-      fsType = "ext4";
-    };
-    system.stateVersion = "26.05";
+    # What this configuration is for: with the broker local, the bot must be
+    # ordered after it. Checked at eval time, so the CI dry-run catches it.
+    assertions = [
+      {
+        assertion = lib.elem "mosquitto.service" config.systemd.services.teslamate-telegram-bot.after;
+        message = "with a local mosquitto, the bot unit must be ordered after mosquitto.service";
+      }
+    ];
   };
 }

@@ -150,6 +150,9 @@ To enable the TeslaMate Telegram Bot service, your config could look like this (
 
     # Optional values:
     #  - `MQTT_BROKER_PASSWORD=password` # only needed when broker has authentication enabled
+
+    # The MQTT broker defaults to 127.0.0.1:1883. If it runs on another host:
+    # mqtt.host = "teslamate.example.org";
   };
 }
 ```

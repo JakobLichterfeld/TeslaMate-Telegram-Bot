@@ -17,15 +17,26 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       flake.nixosModules.default = import ./nix/module.nix { inherit self; };
 
-      # Not a machine anyone runs: the one configuration that instantiates the
-      # module, so CI notices when it stops evaluating against nixpkgs.
-      flake.nixosConfigurations.test = inputs.nixpkgs.lib.nixosSystem {
-        modules = [
-          self.nixosModules.default
-          ./nix/test-configuration.nix
-          { nixpkgs.hostPlatform = "x86_64-linux"; }
-        ];
-      };
+      # Not machines anyone runs: the configurations that instantiate the
+      # module, so CI notices when it stops evaluating against nixpkgs. One
+      # per broker placement, because the module renders different unit
+      # orderings for a local and a remote broker.
+      flake.nixosConfigurations =
+        let
+          machine =
+            configuration:
+            inputs.nixpkgs.lib.nixosSystem {
+              modules = [
+                self.nixosModules.default
+                ./nix/test-machine.nix
+                configuration
+              ];
+            };
+        in
+        {
+          test = machine ./nix/test-configuration.nix;
+          test-remote = machine ./nix/test-configuration-remote.nix;
+        };
 
       systems = [
         "x86_64-linux"
