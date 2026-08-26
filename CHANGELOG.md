@@ -10,6 +10,8 @@
 
 #### Build, CI, internal
 
+- build(deps): update flake.lock
+
 ### Bug Fixes
 
 ## [1.1.0] - 2026-08-06
