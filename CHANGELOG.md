@@ -12,6 +12,7 @@
 
 - build(deps): update flake.lock
 - build(deps): bump the actions-deps group with 3 updates (#146)
+- build(deps-dev): bump pylint from 4.0.6 to 4.0.7 (#147)
 
 ### Bug Fixes
 
