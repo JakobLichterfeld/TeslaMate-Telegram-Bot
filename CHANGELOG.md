@@ -11,6 +11,7 @@
 #### Build, CI, internal
 
 - build(deps): update flake.lock
+- build(deps): bump the actions-deps group with 3 updates (#146)
 
 ### Bug Fixes
 
