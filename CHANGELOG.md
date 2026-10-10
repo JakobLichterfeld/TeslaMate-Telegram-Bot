@@ -14,6 +14,7 @@
 - build(deps): bump the actions-deps group with 3 updates (#146)
 - build(deps-dev): bump pylint from 4.0.6 to 4.0.7 (#147)
 - build(deps-dev): bump pylint from 4.0.7 to 4.0.9 (#150)
+- build(deps): bump the actions-deps group with 4 updates (#149)
 
 ### Bug Fixes
 
