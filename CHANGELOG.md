@@ -1,8 +1,8 @@
 # Changelog
 
-## [Unreleased]
+## [1.1.1] - 2026-10-26
 
-### New Features
+The certificate authority eMudhra generated the private keys of eight of its intermediate CAs incorrectly, so anyone can recover them from the certificates ([incident report](https://bugzilla.mozilla.org/show_bug.cgi?id=2083449)). TeslaMate Telegram Bot no longer trusts these CAs, so they cannot be used to impersonate the Telegram API and intercept the bot token (#151).
 
 ### Enhancements
 
@@ -17,8 +17,6 @@
 - build(deps): bump the actions-deps group with 4 updates (#149)
 - build(deps): bump certifi from 2026.7.22 to 2026.10.19 (#151)
 - build(deps): update flake.lock
-
-### Bug Fixes
 
 ## [1.1.0] - 2026-08-06
 
@@ -509,7 +507,7 @@ fix: Subscription to teslamate_topic_update_version added
 
 - Initial release with proof of concept, see #1
 
-[Unreleased]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v1.1.0...HEAD
+[1.1.1]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/JakobLichterfeld/TeslaMate_Telegram_Bot/compare/v0.7.9...v1.0.0
