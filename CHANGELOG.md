@@ -15,6 +15,7 @@
 - build(deps-dev): bump pylint from 4.0.6 to 4.0.7 (#147)
 - build(deps-dev): bump pylint from 4.0.7 to 4.0.9 (#150)
 - build(deps): bump the actions-deps group with 4 updates (#149)
+- build(deps): bump certifi from 2026.7.22 to 2026.10.19 (#151)
 
 ### Bug Fixes
 
