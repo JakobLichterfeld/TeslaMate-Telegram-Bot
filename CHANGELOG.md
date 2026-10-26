@@ -8,6 +8,8 @@
 
 #### Build, CI, internal
 
+- build(treefmt): regenerate treefmt.toml after treefmt-nix bump
+
 ### Bug Fixes
 
 ## [1.1.1] - 2026-10-26
