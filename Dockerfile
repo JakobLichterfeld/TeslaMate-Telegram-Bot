@@ -1,5 +1,5 @@
 # Stage 1: Build stage
-FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim AS builder
+FROM ghcr.io/astral-sh/uv:python3.15-trixie-slim AS builder
 
 # Set environment variables
 # Keeps Python from generating .pyc files in the container

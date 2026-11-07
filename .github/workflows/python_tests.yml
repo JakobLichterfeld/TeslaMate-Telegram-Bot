@@ -12,10 +12,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Both interpreters the project ships on: 3.14 in the container image,
+        # Both interpreters the project ships on: 3.15 in the container image,
         # 3.13 in the Nix package, because that is what nixpkgs 26.05 defaults
         # to - and both ends of requires-python in pyproject.toml.
-        python-version: ["3.13", "3.14"]
+        python-version: ["3.13", "3.15"]
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
