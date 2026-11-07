@@ -9,6 +9,7 @@
 #### Build, CI, internal
 
 - build(treefmt): regenerate treefmt.toml after treefmt-nix bump
+- build(deps-dev): bump pylint from 4.0.9 to 4.1.3 (#155)
 
 ### Bug Fixes
 
