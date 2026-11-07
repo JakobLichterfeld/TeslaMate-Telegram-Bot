@@ -12,6 +12,7 @@
 - build(deps-dev): bump pylint from 4.0.9 to 4.1.3 (#155)
 - build(deps): bump python from 3.14 to 3.15 for docker builds and ci (#152)
 - build(deps-dev): bump pytest from 9.1.1 to 9.2.0 (#153)
+- build(deps): bump the actions-deps group with 4 updates (#154)
 
 ### Bug Fixes
 
