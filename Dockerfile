@@ -1,5 +1,5 @@
 # Stage 1: Build stage
-FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim AS builder
+FROM ghcr.io/astral-sh/uv:python3.15-trixie-slim AS builder
 
 # Set environment variables
 # Keeps Python from generating .pyc files in the container
@@ -34,7 +34,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-editable --no-default-groups
 
 # Stage 2: Runtime stage
-FROM python:3.14-slim-trixie AS app
+FROM python:3.15-slim-trixie AS app
 
 # Set environment variables
 # Keeps Python from generating .pyc files in the container
