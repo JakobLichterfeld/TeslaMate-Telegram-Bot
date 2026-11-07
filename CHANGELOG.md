@@ -228,6 +228,7 @@ Note for contributors: The default branch was renamed to `main`. Please update y
 - build(deps): bump docker/metadata-action from 5.8.0 to 5.10.0 (#93)
 - build(deps): bump actions/checkout from 5.0.0 to 6.0.0 (#94)
 - build(deps): bump actions/setup-python from 6.0.0 to 6.1.0 (#95)
+- build(deps): bump python from 3.14 to 3.15 for docker builds and ci (#152)
 
 ### Bug Fixes
 
